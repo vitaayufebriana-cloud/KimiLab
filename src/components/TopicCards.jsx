@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { modulesData } from '../data/modulesData';
+import ModuleReaderModal from './modules/ModuleReaderModal';
 
 /**
  * Komponen TopicCards menampilkan SATU kartu modul fokus:
- * Modul Larutan Asam-Basa
+ * Modul 1: Larutan Asam dan Basa
  * @param {{ progress: Record<string, number>, onUpdateProgress: (moduleId: string, percent: number) => void }} props
  */
-export default function TopicCards({ progress = {}, onUpdateProgress }) {
+export default function TopicCards({ progress = {}, onUpdateProgress, onOpen5EStage }) {
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState('apersepsi');
 
   // Ambil data modul 'asam-basa'
-  const asamBasaModul = modulesData.find((m) => m.id === 'asam-basa') || modulesData[2];
+  const asamBasaModul = modulesData.find((m) => m.id === 'asam-basa') || modulesData[0] || modulesData[2];
   const modProgress = progress['asam-basa'] || 0;
   const isDone = modProgress >= 100;
 
@@ -29,21 +31,17 @@ export default function TopicCards({ progress = {}, onUpdateProgress }) {
 
   const currentPh = phExamples[selectedPhIndex];
 
-  // Tutup modal via Escape
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') setModalOpen(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   const handleToggleDone = () => {
     if (isDone) {
       onUpdateProgress('asam-basa', 0);
     } else {
       onUpdateProgress('asam-basa', 100);
     }
+  };
+
+  const handleOpenModule = (tab = 'apersepsi') => {
+    setModalTab(tab);
+    setModalOpen(true);
   };
 
   const handleSubtopicToggle = (index, total) => {
@@ -83,7 +81,7 @@ export default function TopicCards({ progress = {}, onUpdateProgress }) {
         >
           {/* Card Top Meta */}
           <div className="card-top-bar">
-            <span className="card-order-badge">MODUL 03 • FOKUS BELAJAR</span>
+            <span className="card-order-badge">MODUL 01 • FOKUS BELAJAR</span>
             <span className="card-category-text">{asamBasaModul.category}</span>
             <span className="card-grade-tag">{asamBasaModul.grade}</span>
           </div>
@@ -210,12 +208,42 @@ export default function TopicCards({ progress = {}, onUpdateProgress }) {
               <span className="meta-chip">💾 Tersimpan di Browser</span>
             </div>
 
+            {/* Quick Apersepsi & Objectives Callout Banner */}
+            <div className="card-engage-preview-strip">
+              <div className="engage-preview-left">
+                <span className="engage-preview-icon" aria-hidden="true">💡</span>
+                <div className="engage-preview-text">
+                  <strong>Apersepsi Kontekstual:</strong> Mengapa ada zat yang terasa asam (lemon) dan ada yang licin (sabun)?
+                </div>
+              </div>
+              <button
+                type="button"
+                className="btn-card-engage-preview"
+                onClick={() => handleOpenModule('apersepsi')}
+              >
+                Lihat Apersepsi &rarr;
+              </button>
+            </div>
+
             <div className="card-buttons-group">
+              {onOpen5EStage && (
+                <button
+                  type="button"
+                  id="btn-open-5e-from-card"
+                  className="btn-card-primary"
+                  onClick={() => onOpen5EStage('engage')}
+                  style={{ background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)', boxShadow: '0 4px 18px rgba(6, 182, 212, 0.4)' }}
+                >
+                  <span>🚀 Mulai Belajar Sintaks 5E</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </button>
+              )}
+
               <button
                 id="btn-open-module-asam-basa"
                 type="button"
                 className="btn-card-primary"
-                onClick={() => setModalOpen(true)}
+                onClick={() => handleOpenModule('apersepsi')}
               >
                 <span>Buka Materi Modul Lengkap</span>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -223,6 +251,25 @@ export default function TopicCards({ progress = {}, onUpdateProgress }) {
                   <path d="m12 5 7 7-7 7"></path>
                 </svg>
               </button>
+
+              <button
+                id="btn-quick-tujuan-asam-basa"
+                type="button"
+                className="btn-card-secondary-engage"
+                onClick={() => handleOpenModule('tujuan')}
+                title="Buka 6 Capaian Tujuan Pembelajaran"
+              >
+                <span>🎯 Tujuan Pembelajaran (6)</span>
+              </button>
+
+              <a
+                href="#kuis-asam-basa"
+                id="btn-card-goto-quiz"
+                className="btn-card-quiz-link"
+                title="Buka Evaluasi Kuis Asam-Basa (10 Soal)"
+              >
+                <span>📝 Kuis (10 Soal)</span>
+              </a>
 
               <button
                 id="btn-toggle-done-asam-basa"
@@ -239,97 +286,17 @@ export default function TopicCards({ progress = {}, onUpdateProgress }) {
       </div>
 
       {/* Interactive Detail Modal Reader */}
-      {modalOpen && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-module-title">
-          <div className="modal-content-box" style={{ '--modal-accent': asamBasaModul.accentColor }}>
-            <div className="modal-header">
-              <div>
-                <span className="modal-subtitle">MODUL 03 • {asamBasaModul.category}</span>
-                <h3 id="modal-module-title" className="modal-title">{asamBasaModul.fullTitle}</h3>
-              </div>
-              <button
-                id="btn-close-modal"
-                type="button"
-                className="modal-close-btn"
-                onClick={() => setModalOpen(false)}
-                aria-label="Tutup jendela materi"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="modal-body">
-              {/* Objectives */}
-              <section className="modal-section">
-                <h4 className="modal-section-heading">🎯 Tujuan Pembelajaran</h4>
-                <ul className="modal-checklist">
-                  {asamBasaModul.objectives.map((obj, i) => (
-                    <li key={i}>{obj}</li>
-                  ))}
-                </ul>
-              </section>
-
-              {/* Subtopic Study Checklist */}
-              <section className="modal-section">
-                <div className="modal-section-header-flex">
-                  <h4 className="modal-section-heading">📚 Langkah Pembelajaran (Klik untuk Simpan Progres)</h4>
-                  <span className="modal-progress-counter">
-                    Progres: {modProgress}%
-                  </span>
-                </div>
-                <div className="interactive-subtopics-group">
-                  {asamBasaModul.subtopics.map((sub, idx) => {
-                    const total = asamBasaModul.subtopics.length;
-                    const threshold = Math.round(((idx + 1) / total) * 100);
-                    const isChecked = modProgress >= threshold;
-
-                    return (
-                      <button
-                        key={sub.id}
-                        type="button"
-                        className={`interactive-subtopic-btn ${isChecked ? 'checked' : ''}`}
-                        onClick={() => handleSubtopicToggle(idx, total)}
-                      >
-                        <span className="checkbox-visual" aria-hidden="true">
-                          {isChecked ? '✓' : ''}
-                        </span>
-                        <div className="interactive-subtopic-info">
-                          <span className="step-number">Langkah 0{idx + 1}</span>
-                          <strong>{sub.name}</strong>
-                          <span className="step-desc">{sub.desc}</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
-
-              {/* Reaksi Kimia & Penjelasan */}
-              <section className="modal-section">
-                <h4 className="modal-section-heading">🧪 Contoh Reaksi & Penjelasan Ilmiah</h4>
-                <div className="modal-reaction-card">
-                  <code>{asamBasaModul.sampleReaction.equation}</code>
-                  <p>{asamBasaModul.sampleReaction.note}</p>
-                </div>
-              </section>
-            </div>
-
-            <div className="modal-footer">
-              <span className="modal-footer-storage-note">
-                💾 Progres otomatis tersimpan secara anonim di <code>localStorage</code> browser Anda.
-              </span>
-              <button
-                id="btn-modal-done"
-                type="button"
-                className="btn-primary-modal"
-                onClick={() => setModalOpen(false)}
-              >
-                Selesai Membaca & Tutup
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ModuleReaderModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        activeTab={modalTab}
+        onTabChange={setModalTab}
+        modProgress={modProgress}
+        onSubtopicToggle={handleSubtopicToggle}
+        subtopics={asamBasaModul.subtopics}
+        sampleReaction={asamBasaModul.sampleReaction}
+        accentColor={asamBasaModul.accentColor}
+      />
     </section>
   );
 }

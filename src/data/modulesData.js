@@ -1,5 +1,7 @@
+import { learningObjectives, apersepsiData } from './chemData';
+
 /**
- * Data Statis 3 Modul Utama Pembelajaran Kimia SMA
+ * Data Statis Modul Utama Pembelajaran Kimia SMA
  * Sesuai panduan AGENTS.md:
  * - 100% Client-Side Data (tanpa remote backend)
  * - Format rumus kimia terstandarisasi subskrip/superskip
@@ -82,10 +84,10 @@ export const modulesData = [
   },
   {
     id: 'asam-basa',
-    order: '03',
+    order: '01',
     category: 'Kesetimbangan Ion & Larutan',
-    title: 'Larutan Asam-Basa',
-    fullTitle: 'Larutan Asam-Basa & Derajat Keasaman (pH)',
+    title: 'Modul 1: Larutan Asam dan Basa',
+    fullTitle: 'Modul 1: Larutan Asam dan Basa & Derajat Keasaman (pH)',
     tagline: 'Kupas tuntas teori ionik, skala logaritmik pH, indikator, dan titrasi',
     accentColor: '#8b5cf6', // Violet
     accentLight: 'rgba(139, 92, 246, 0.12)',
@@ -103,18 +105,16 @@ export const modulesData = [
     },
     subtopics: [
       { id: 'ab-1', name: 'Tiga Teori Asam-Basa', desc: 'Arrhenius, Brønsted-Lowry, dan Lewis' },
-      { id: 'ab-2', name: 'Kekuatan Asam & Basa', desc: 'Derajat ionisasi (α) serta tetapan Ka dan Kb' },
-      { id: 'ab-3', name: 'Konsep pH, pOH, dan Indikator', desc: 'Skala keasaman dan trayek perubahan warna lakmus' },
+      { id: 'ab-2', name: 'Kesetimbangan Ionisasi Air & pH', desc: 'Hubungan [H⁺], [OH⁻], dan Kw = 10⁻¹⁴' },
+      { id: 'ab-3', name: 'Kekuatan Asam & Basa', desc: 'Derajat ionisasi (α) serta tetapan Ka dan Kb' },
       { id: 'ab-4', name: 'Titrasi Netralisasi Asam-Basa', desc: 'Va · Ma · val_a = Vb · Mb · val_b' },
     ],
     sampleReaction: {
       equation: 'HCl(aq) + NaOH(aq) → NaCl(aq) + H₂O(l)',
       note: 'Reaksi netralisasi antara asam kuat dan basa kuat menghasilkan garam netral dan molekul air.',
     },
-    objectives: [
-      'Menganalisis sifat asam dan basa menurut pasangan asam-basa konjugasi Brønsted-Lowry.',
-      'Menghitung nilai pH larutan asam kuat, asam lemah, basa kuat, dan basa lemah.',
-      'Memahami titik ekuivalen dan kurva titrasi asam-basa dalam uji laboratorium.',
-    ],
+    objectives: learningObjectives.map((item) => item.text),
+    learningObjectivesList: learningObjectives,
+    apersepsi: apersepsiData,
   },
 ];
