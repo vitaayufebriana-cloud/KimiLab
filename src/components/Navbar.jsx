@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getPendingCount, syncPending } from '../lib/syncService';
+import { getQuizSession } from '../lib/localStore';
 
 /**
  * Navbar KimiLab dengan Identitas Media, Status Akun Role-Based,
  * Progres Belajar Asam-Basa, dan Navigasi Sintaks 5E.
- * 
+ *
  * @param {{
  *   progress: Record<string, number>,
  *   onResetProgress: () => void,
@@ -13,6 +15,7 @@ import { useState } from 'react';
  *   currentView?: 'home' | 'auth' | 'module-5e',
  *   onNavigateHome?: () => void,
  *   onOpen5EStage?: (stageId: string) => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function Navbar({
@@ -24,13 +27,44 @@ export default function Navbar({
   currentView = 'home',
   onNavigateHome = () => {},
   onOpen5EStage = () => {},
+  onNotify = () => {},
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [pendingCount, setPendingCount] = useState(() => getPendingCount());
+  const [syncing, setSyncing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Progres spesifik modul Larutan Asam-Basa
   const asamBasaProgress = progress['asam-basa'] || 0;
   const isCompleted = asamBasaProgress >= 100;
+
+  // Pantau perubahan antrean pending (enqueue / sync) dari mana pun
+  useEffect(() => {
+    const refresh = () => setPendingCount(getPendingCount());
+    window.addEventListener('kimilab_pending_changed', refresh);
+    window.addEventListener('kimilab_sync_completed', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('kimilab_pending_changed', refresh);
+      window.removeEventListener('kimilab_sync_completed', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
+
+  // Auto-sync diam-diam saat pengguna sudah login (mengirim sisa antrean)
+  useEffect(() => {
+    if (!authUser) return undefined;
+    let cancelled = false;
+    syncPending()
+      .then((result) => {
+        if (!cancelled && result) setPendingCount(result.pending ?? 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [authUser]);
 
   const handleResetClick = () => {
     if (showResetConfirm) {
@@ -39,6 +73,64 @@ export default function Navbar({
     } else {
       setShowResetConfirm(true);
       setTimeout(() => setShowResetConfirm(false), 4000);
+    }
+  };
+
+  const handleSyncClick = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const result = await syncPending();
+      setPendingCount(result.pending ?? 0);
+
+      if (result.reason === 'not-signed-in') {
+        onNotify('Hasil kuis belum terkirim. Masuk dengan Google (tab Siswa/Guru) di halaman login.');
+      } else if (result.reason === 'empty') {
+        onNotify('✅ Semua hasil kuis sudah tersinkron ke akun.');
+      } else if (result.failed === 0) {
+        onNotify(`✅ ${result.synced} hasil kuis terkirim ke akun.`);
+      } else {
+        onNotify(`Terkirim ${result.synced}, gagal ${result.failed}. Periksa koneksi lalu coba lagi.`);
+      }
+    } catch (err) {
+      console.error('[Navbar] Sinkronisasi gagal:', err);
+      onNotify('Gagal mengirim hasil kuis. Silakan coba lagi.');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleSaveClick = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const session = getQuizSession('asam-basa', 'v1');
+
+      if (!session || session.status !== 'submitted') {
+        onNotify('Belum ada hasil kuis yang dibekukan. Selesaikan & kirim kuis dulu.');
+        return;
+      }
+
+      const { saveAttempt } = await import('../lib/cloudService');
+      await saveAttempt({
+        attemptId: session.attemptId,
+        moduleId: session.moduleId,
+        stage: 'evaluate',
+        answers: session.answers,
+        startedAt: session.startedAt,
+        endedAt: session.submittedAt,
+        score: session.score,
+        version: session.version,
+      });
+      onNotify('✅ Hasil kuis tersimpan ke akun Google Anda.');
+    } catch (err) {
+      const message =
+        err?.message === 'not-signed-in'
+          ? 'Masuk dengan Google di halaman login agar hasil kuis bisa disimpan ke akun.'
+          : `Gagal menyimpan ke akun: ${err?.message || 'periksa koneksi Anda.'}`;
+      onNotify(message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -149,26 +241,53 @@ export default function Navbar({
 
           {/* Status Akun Pengguna / Tombol Keluar */}
           {authUser ? (
-            <div className="nav-user-badge">
-              <div className="nav-user-avatar" title={`Masuk sebagai ${authUser.name}`}>
-                {authUser.name ? authUser.name.charAt(0).toUpperCase() : 'U'}
+            <>
+              <div className="nav-user-badge">
+                <div className="nav-user-avatar" title={`Masuk sebagai ${authUser.name}`}>
+                  {authUser.name ? authUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div className="nav-user-info">
+                  <span className="nav-user-name">{authUser.name}</span>
+                  <span className="nav-user-role">
+                    {authUser.role === 'guru' ? '👨‍🏫 Guru' : `🎓 ${authUser.kelas || 'Siswa'}`}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  id="btn-nav-logout"
+                  className="btn-nav-logout"
+                  onClick={onLogout}
+                  title="Keluar dari akun dan kembali ke halaman login"
+                >
+                  Keluar
+                </button>
               </div>
-              <div className="nav-user-info">
-                <span className="nav-user-name">{authUser.name}</span>
-                <span className="nav-user-role">
-                  {authUser.role === 'guru' ? '👨‍🏫 Guru' : `🎓 ${authUser.kelas || 'Siswa'}`}
-                </span>
-              </div>
+
+              {/* Sinkronisasi Hasil Kuis ke Akun Google */}
               <button
                 type="button"
-                id="btn-nav-logout"
-                className="btn-nav-logout"
-                onClick={onLogout}
-                title="Keluar dari akun dan kembali ke halaman login"
+                className="btn-nav-sync"
+                onClick={handleSyncClick}
+                disabled={syncing}
+                title="Kirim hasil kuis yang tertunda ke akun Google Anda"
               >
-                Keluar
+                {syncing ? 'Mengirim…' : 'Coba Kirim Lagi'}
+                {pendingCount > 0 && (
+                  <span className="pending-badge" aria-label={`${pendingCount} hasil belum terkirim`}>
+                    {pendingCount}
+                  </span>
+                )}
               </button>
-            </div>
+              <button
+                type="button"
+                className="btn-nav-save"
+                onClick={handleSaveClick}
+                disabled={saving}
+                title="Simpan hasil kuis yang sudah dibekukan ke akun Google Anda"
+              >
+                {saving ? 'Menyimpan…' : 'Simpan ke Akun'}
+              </button>
+            </>
           ) : (
             <button
               id="nav-auth-btn"
@@ -265,6 +384,24 @@ export default function Navbar({
                 <span>
                   Masuk: <strong>{authUser.name}</strong> ({authUser.role === 'guru' ? 'Guru' : authUser.kelas || 'Siswa'})
                 </span>
+                <button
+                  type="button"
+                  className="btn-nav-sync"
+                  onClick={() => {
+                    handleSyncClick();
+                  }}
+                  style={{ marginTop: '8px' }}
+                >
+                  ☁️ Coba Kirim Lagi{pendingCount > 0 ? ` (${pendingCount})` : ''}
+                </button>
+                <button
+                  type="button"
+                  className="btn-nav-save"
+                  onClick={handleSaveClick}
+                  style={{ marginTop: '6px' }}
+                >
+                  💾 Simpan ke Akun
+                </button>
                 <button
                   type="button"
                   className="btn-danger-sm"

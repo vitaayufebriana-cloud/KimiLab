@@ -6,6 +6,7 @@ import {
   requestPasswordReset,
   resetPassword,
   loginAsGuest,
+  loginWithGoogleProfile,
   STANDARD_TEACHER_CODE,
 } from '../../utils/authHelper';
 import './AuthPages.css';
@@ -69,6 +70,7 @@ export default function AuthPages({
 
   // Status Notifikasi / Alert
   const [alert, setAlert] = useState({ type: '', message: '' });
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const clearAlert = () => setAlert({ type: '', message: '' });
 
@@ -231,6 +233,50 @@ export default function AuthPages({
     setAlert({ type: 'success', message: msg });
     if (onAuthSuccess) {
       onAuthSuccess(guest, msg);
+    }
+  };
+
+  // Masuk dengan Google — role mengikuti tab yang dipilih (Siswa / Guru)
+  const handleGoogleLogin = async () => {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    clearAlert();
+
+    try {
+      const { googleLogin, firebaseSignOut } = await import('../../lib/firebaseService');
+      const result = await googleLogin();
+
+      if (!result.success) {
+        setAlert({ type: 'error', message: result.message });
+        return;
+      }
+
+      const local = loginWithGoogleProfile({
+        name: result.user.displayName,
+        email: result.user.email,
+        role: activeRole,
+      });
+
+      if (!local.success) {
+        // Role lokal tidak cocok — akhiri sesi Firebase agar tidak setengah login
+        await firebaseSignOut();
+        setAlert({ type: 'error', message: local.message });
+        return;
+      }
+
+      const msg = `Selamat datang, ${local.user.name}!`;
+      setAlert({ type: 'success', message: msg });
+      if (onAuthSuccess) {
+        onAuthSuccess(local.user, local.message || msg);
+      }
+    } catch (err) {
+      console.error('[AuthPages] Login Google gagal:', err);
+      setAlert({
+        type: 'error',
+        message: err?.message || 'Gagal masuk dengan Google. Silakan coba lagi.',
+      });
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -558,6 +604,31 @@ export default function AuthPages({
                 <button type="submit" id="btn-submit-login" className="auth-btn-primary">
                   <span>Masuk ke {activeRole === 'guru' ? 'Beranda Guru' : 'Beranda Siswa'}</span>
                   <span aria-hidden="true">→</span>
+                </button>
+
+                {/* Masuk dengan Google */}
+                <div className="auth-divider">
+                  <span>atau</span>
+                </div>
+
+                <button
+                  type="button"
+                  className="auth-btn-google"
+                  onClick={handleGoogleLogin}
+                  disabled={googleLoading}
+                  title={`Masuk dengan akun Google sebagai ${activeRole === 'guru' ? 'Guru' : 'Siswa'}`}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29a11.86 11.86 0 0 0 0 10.76l3.98-3.09z"/>
+                    <path fill="#EA4335" d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.88 8.87 4.77 12 4.77z"/>
+                  </svg>
+                  <span>
+                    {googleLoading
+                      ? 'Menghubungkan ke Google…'
+                      : `Masuk dengan Google sebagai ${activeRole === 'guru' ? 'Guru' : 'Siswa'}`}
+                  </span>
                 </button>
 
                 {/* Mode Tamu Instan */}

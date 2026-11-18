@@ -7,12 +7,13 @@ Dokumen ini berisi batasan teknis, aturan arsitektur, dan standar kode untuk pro
 ## 1. Batasan Arsitektur & Lingkungan (Testable Constraints)
 
 * **Arsitektur**: 100% Client-Side Single Page Application (SPA) berbasis React 19 + Vite.
-* **Backend Luar**: **TIDAK MENGGUNAKAN BACKEND LUAR** (No external backend, no remote database, no server API).
-  * *Cara Uji*: Kode tidak boleh memiliki panggilan `fetch`/`axios` ke endpoint eksternal di luar aset lokal.
+* **Arsitektur Data (Local-First + Cloud Sync Opsional)**: `localStorage` tetap menjadi sumber kebenaran utama (progres 5E, sesi kuis, draf jawaban). Backend eksternal yang diizinkan **hanya Firebase** (Authentication Google + Cloud Firestore), dan **hanya** untuk: (1) masuk dengan Google (opsional), (2) sinkronisasi hasil kuis yang sudah dibekukan ke koleksi `attempts`. Selain itu **TIDAK ADA backend luar lain** (no server API, no database lain).
+  * *Cara Uji*: Kode tidak boleh memiliki panggilan `fetch`/`axios` ke endpoint eksternal selain SDK Firebase. Bersihkan data via `localStorage.clear()` → aplikasi kembali ke state awal tanpa error. Hapus/kosongkan `.env.local` → seluruh fitur lokal tetap berjalan normal (tombol sync hanya menampilkan notifikasi gagal, tidak crash).
 * **Penyimpanan Data**: Gunakan `localStorage` browser untuk menyimpan progres belajar, status modul yang telah diselesaikan, dan riwayat skor kuis secara anonim.
   * *Cara Uji*: Bersihkan data via `localStorage.clear()` untuk memastikan aplikasi kembali ke state awal dengan mulus tanpa error.
+* **Sinkronisasi Cloud (Opsional)**: Setiap submit kuis masuk ke antrean lokal `kimilab_pending_attempts`. Antrean dikirim ke Firestore (`attempts`, document ID = UUID `attemptId`) saat pengguna login Google (auto-sync) atau menekan tombol **"Coba Kirim Lagi"** / **"Simpan ke Akun"** di Navbar. Keamanan diatur oleh `firestore.rules`: pengguna hanya boleh menulis & membaca dokumennya sendiri (`userId == request.auth.uid`).
 * **Konten Pembelajaran**: Seluruh materi modul kimia, kuis, opsi jawaban, dan penjelasan disimpan sebagai file data statis lokal di dalam `src/data/` (format `.js` atau `.json`).
-* **Autentikasi**: Tidak ada sistem registrasi/login dengan password. Siswa langsung dapat belajar secara instan (opsional: input nama samaran lokal jika diperlukan untuk personalisasi salam).
+* **Autentikasi**: Login lokal (password) untuk akun demo/terdaftar, login cepat sebagai Tamu, atau opsional **Masuk dengan Google** (role mengikuti tab Siswa/Guru di panel login). Untuk sinkronisasi cloud, sesi harus masuk via Google (email Google dianggap terverifikasi; login Google sebagai Guru tidak memerlukan kode verifikasi).
 
 ---
 
@@ -33,6 +34,12 @@ src/
 ├── data/           # Konten statis pembelajaran
 │   ├── modulesData.js   # Modul utama kimia
 │   └── quizData.js      # Soal kuis, opsi, kunci, dan pembahasan
+├── lib/            # Penyimpanan & sinkronisasi hasil kuis
+│   ├── localStore.js        # Sesi kuis local-first (localStorage)
+│   ├── attemptContract.js   # Kontrak payload attempt (payloadOf, sameAttempt)
+│   ├── firebaseService.js   # Init Firebase (lazy), googleLogin(), firebaseSignOut()
+│   ├── cloudService.js      # saveAttempt() → Firestore koleksi `attempts`
+│   └── syncService.js       # Antrean `kimilab_pending_attempts` + syncPending()
 ├── utils/          # Fungsi utilitas (misal: storageHelper.js)
 ├── App.jsx         # Komponen induk navigasi & alur aplikasi
 ├── App.css         # Styling spesifik komponen utama

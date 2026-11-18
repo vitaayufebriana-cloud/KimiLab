@@ -1,0 +1,40 @@
+rules_version = '2';
+
+/**
+ * Firestore Security Rules — KimiLab (Larutan Asam-Basa / Kuis 5E)
+ *
+ * Model data: SATU koleksi bersama `attempts`. Setiap dokumen hasil kuis
+ * diberi label `userId` (uid Firebase Auth pemiliknya).
+ *
+ * Aturan:
+ * - Hanya pengguna yang sudah login (request.auth != null) yang boleh akses.
+ * - Siswa hanya boleh menulis/membaca dokumennya SENDIRI (userId == uid).
+ * - Dokumen tidak boleh dihapus dari klien.
+ *
+ * Cara publish (pilih salah satu):
+ * 1. Firebase Console → Firestore Database → Rules → tempel isi file ini → Publish
+ * 2. Firebase CLI: `npm install -g firebase-tools` → `firebase login`
+ *    → `firebase init firestore` (pilih proyek `kimilab`) → `firebase deploy --only firestore:rules`
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /attempts/{attemptId} {
+      // Buat/ubah: hanya pemilik berdasarkan label userId di dokumen
+      allow create, update: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+
+      // Baca (get & query): hanya dokumen milik sendiri.
+      // Query wajib memuat where('userId', '==', <uid sendiri>).
+      allow get, list: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+
+      // Tidak boleh dihapus dari klien
+      allow delete: if false;
+    }
+
+    // Default: tolak semua koleksi lain
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

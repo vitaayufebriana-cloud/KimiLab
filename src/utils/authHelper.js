@@ -526,6 +526,88 @@ export const logoutUser = () => {
 };
 
 /**
+ * Login / registrasi akun lokal untuk penyedia Google.
+ * Role mengikuti pilihan tab (Siswa/Guru) di panel login.
+ * - Jika email sudah terdaftar: pakai akun tersebut (role harus cocok dengan tab aktif).
+ * - Jika belum: buat profil lokal baru bertanda provider 'google'
+ *   (tanpa password — hanya bisa masuk lewat Google).
+ * @param {{ name?: string, email?: string, role?: 'siswa' | 'guru' }} profile
+ * @returns {{ success: boolean, user?: object, message: string }}
+ */
+export const loginWithGoogleProfile = ({ name, email, role = 'siswa' }) => {
+  const cleanEmail = (email || '').trim().toLowerCase();
+  if (!cleanEmail) {
+    return { success: false, message: 'Google tidak mengembalikan alamat email. Coba lagi.' };
+  }
+
+  const targetRole = (role || 'siswa').toLowerCase() === 'guru' ? 'guru' : 'siswa';
+  const emailDomain = cleanEmail.split('@')[1] || '';
+  const users = getRegisteredUsers();
+  const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
+
+  if (found) {
+    const foundRole = (found.role || 'siswa').toLowerCase();
+    if (foundRole !== targetRole) {
+      const label = foundRole === 'guru' ? 'Guru' : 'Siswa';
+      return {
+        success: false,
+        message: `Akun Google ini terdaftar sebagai peran ${label}. Silakan ganti tab ke login sebagai ${label}.`,
+      };
+    }
+    const activeUser = {
+      name: found.name,
+      username: found.username,
+      email: found.email,
+      role: found.role || 'siswa',
+      kelas: found.kelas || (found.role === 'siswa' ? 'XI MIPA' : undefined),
+      sekolah: found.sekolah || 'SMA',
+      provider: found.provider || 'local',
+      loginAt: new Date().toISOString(),
+    };
+    setCurrentAuthUser(activeUser, true);
+    return { success: true, user: activeUser, message: `Selamat datang kembali, ${activeUser.name}!` };
+  }
+
+  // Profil baru dari Google
+  const displayName = (name || '').trim() || cleanEmail.split('@')[0];
+  let username = cleanEmail.split('@')[0];
+  if (users.some((u) => (u.username || '').toLowerCase() === username.toLowerCase())) {
+    username = `${username}_${Math.floor(1000 + Math.random() * 9000)}`;
+  }
+
+  const newAccount = {
+    name: displayName,
+    username,
+    email: cleanEmail,
+    password: `google-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`, // tidak dipakai untuk login password
+    role: targetRole,
+    kelas: targetRole === 'siswa' ? 'XI MIPA 1' : undefined,
+    sekolah: emailDomain ? emailDomain : 'SMA',
+    provider: 'google',
+    createdAt: new Date().toISOString(),
+  };
+
+  saveRegisteredUsers([...users, newAccount]);
+
+  const activeUser = {
+    name: newAccount.name,
+    username: newAccount.username,
+    email: newAccount.email,
+    role: newAccount.role,
+    kelas: newAccount.kelas,
+    sekolah: newAccount.sekolah,
+    provider: 'google',
+    loginAt: new Date().toISOString(),
+  };
+  setCurrentAuthUser(activeUser, true);
+  return {
+    success: true,
+    user: activeUser,
+    message: `Akun ${targetRole === 'guru' ? 'Guru' : 'Siswa'} Google terdaftar: ${activeUser.name}`,
+  };
+};
+
+/**
  * Mengambil daftar data siswa untuk ditampilkan di Dashboard Guru
  * Menggabungkan kohort kelas bawaan dan siswa baru yang mendaftar secara lokal.
  * @returns {Array<object>}
