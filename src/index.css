@@ -33,6 +33,37 @@
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  --um-blue: #00529c;
+  --um-blue-dark: #003b73;
+  --um-gold: #facc15;
+  --um-gold-dark: #eab308;
+  --um-white: #ffffff;
+  --um-bg: #f8fafc;
+  --um-bg-tint: #eff6ff;
+  --um-ink: #0f172a;
+  --um-ink-soft: #1e293b;
+  --um-muted: #64748b;
+  --um-placeholder: #94a3b8;
+  --um-text-muted-strong: #475569;
+  --um-border: #cbd5e1;
+  --um-border-soft: #e2e8f0;
+  --um-surface-muted: #f1f5f9;
+  --um-error: #b91c1c;
+  --um-error-bg: #fef2f2;
+  --um-error-border: #fecaca;
+  --um-info: #1d4ed8;
+  --um-info-bg: #eff6ff;
+  --um-info-border: #bfdbfe;
+  --um-logo-shadow: rgba(0, 82, 156, 0.14);
+  --um-card-border: rgba(226, 232, 240, 0.9);
+  --um-shadow: rgba(0, 82, 156, 0.08);
+  --um-shadow-soft: rgba(15, 23, 42, 0.06);
+  --um-shadow-strong: rgba(0, 82, 156, 0.5);
+  --um-shadow-tiny: rgba(15, 23, 42, 0.1);
+  --um-focus-ring: rgba(0, 82, 156, 0.12);
+  --um-watermark-opacity: 0.07;
+  --um-watermark-opacity-sm: 0.05;
 }
 
 html {
