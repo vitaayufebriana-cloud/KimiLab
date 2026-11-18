@@ -12,6 +12,21 @@ import {
 } from './utils/authHelper';
 import './App.css';
 
+const DASHBOARD_HASHES = {
+  siswa: '#/dashboard/siswa',
+  guru: '#/dashboard/guru',
+};
+
+const getDashboardHash = (user) => (user?.role === 'guru' ? DASHBOARD_HASHES.guru : DASHBOARD_HASHES.siswa);
+
+const isDashboardHash = (hash) => Object.values(DASHBOARD_HASHES).includes(hash);
+
+const replaceHash = (hash) => {
+  if (typeof window === 'undefined') return;
+  const { pathname, search } = window.location;
+  window.history.replaceState('', document.title, `${pathname}${search}${hash}`);
+};
+
 export default function App() {
   const [toastMessage, setToastMessage] = useState('');
   const [authUser, setAuthUser] = useState(() => getCurrentAuthUser());
@@ -71,6 +86,8 @@ export default function App() {
       setAuthUser(user);
       if (!user) {
         setCurrentView('auth');
+        setAuthMode('login');
+        replaceHash('#login');
       }
     };
     window.addEventListener('kimilab_auth_changed', handleAuthEvent);
@@ -86,6 +103,18 @@ export default function App() {
       } else if (hash === '#forgot' || hash === '#forgot-password' || hash === '#lupa-sandi') {
         setCurrentView('auth');
         setAuthMode('forgot');
+      } else if (isDashboardHash(hash)) {
+        const active = getCurrentAuthUser();
+        if (!active) {
+          setCurrentView('auth');
+          setAuthMode('login');
+          replaceHash('#login');
+          return;
+        }
+        const expectedHash = getDashboardHash(active);
+        if (hash !== expectedHash) replaceHash(expectedHash);
+        setAuthUser(active);
+        setCurrentView('home');
       } else if (hash.startsWith('#modul-5e')) {
         setCurrentView('module-5e');
       } else if (!hash || hash === '#hero' || hash === '#beranda') {
@@ -110,6 +139,15 @@ export default function App() {
     }
   }, [guruAccess]);
 
+  // Sinkronkan hash dashboard (#/dashboard/siswa|guru) sesuai role aktif
+  useEffect(() => {
+    if (!authUser) return;
+    const hash = window.location.hash.toLowerCase();
+    if (isDashboardHash(hash) && hash !== getDashboardHash(authUser)) {
+      replaceHash(getDashboardHash(authUser));
+    }
+  }, [authUser]);
+
   // Kode Panel Guru benar: unlock untuk sesi tab ini & buka panel
   const handlePanelGuruSuccess = useCallback(() => {
     try {
@@ -126,15 +164,19 @@ export default function App() {
 
   // Navigasi ke Halaman Autentikasi
   const handleOpenAuth = (mode = 'login') => {
+    const authHash = mode === 'register' ? '#register' : mode === 'forgot' ? '#forgot' : '#login';
     setAuthMode(mode);
     setCurrentView('auth');
+    if (window.location.hash.toLowerCase() !== authHash) {
+      window.location.hash = authHash;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Navigasi Kembali ke Dashboard Utama
   const handleBackToHome = () => {
     setCurrentView('home');
-    window.history.pushState('', document.title, window.location.pathname);
+    replaceHash(getDashboardHash(authUser));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -144,6 +186,7 @@ export default function App() {
     showToast(msg || `Selamat datang di KimiLab, ${user.name}!`);
     setTimeout(() => {
       setCurrentView('home');
+      replaceHash(getDashboardHash(user));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 800);
   };
@@ -158,6 +201,7 @@ export default function App() {
     setAuthUser(null);
     setCurrentView('auth');
     setAuthMode('login');
+    replaceHash('#login');
     showToast('👋 Anda telah keluar. Silakan masuk kembali untuk melanjutkan.');
   };
 
@@ -175,6 +219,7 @@ export default function App() {
     return (
       <div className="app-layout">
         <AuthPages
+          key={authMode}
           initialMode={authMode}
           onBackToHome={authUser ? handleBackToHome : undefined}
           onAuthSuccess={handleAuthSuccess}

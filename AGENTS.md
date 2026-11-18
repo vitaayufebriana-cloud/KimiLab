@@ -13,7 +13,7 @@ Dokumen ini berisi batasan teknis, aturan arsitektur, dan standar kode untuk pro
   * *Cara Uji*: Bersihkan data via `localStorage.clear()` untuk memastikan aplikasi kembali ke state awal dengan mulus tanpa error.
 * **Sinkronisasi Cloud (Opsional)**: Setiap submit kuis masuk ke antrean lokal `kimilab_pending_attempts`. Antrean dikirim ke Firestore (`attempts`, document ID = UUID `attemptId`) saat pengguna login Google (auto-sync) atau menekan tombol **"Coba Kirim Lagi"** / **"Simpan ke Akun"** di Navbar. Keamanan diatur oleh `firestore.rules`: pengguna hanya boleh menulis & membaca dokumennya sendiri (`userId == request.auth.uid`).
 * **Konten Pembelajaran**: Seluruh materi modul kimia, kuis, opsi jawaban, dan penjelasan disimpan sebagai file data statis lokal di dalam `src/data/` (format `.js` atau `.json`).
-* **Autentikasi**: Login lokal (password) untuk akun demo/terdaftar, login cepat sebagai Tamu, atau opsional **Masuk dengan Google** (role mengikuti tab Siswa/Guru di panel login). Untuk sinkronisasi cloud, sesi harus masuk via Google (email Google dianggap terverifikasi; login Google sebagai Guru tidak memerlukan kode verifikasi).
+* **Autentikasi**: Login lokal (password) untuk akun demo/terdaftar atau opsional **Masuk dengan Google**. Tidak ada tab/pilihan peran di halaman login; peran diambil otomatis dari akun tersimpan dan pengguna dialihkan ke `#/dashboard/siswa` atau `#/dashboard/guru`. Akun Google baru didaftarkan sebagai siswa kecuali kode verifikasi guru valid; email Google dianggap terverifikasi. Login Tamu dan tombol autofill demo tidak ditampilkan. Untuk sinkronisasi cloud, sesi harus masuk via Google.
 
 ---
 
