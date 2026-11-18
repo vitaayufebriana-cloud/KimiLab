@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
-import HeroSection from './components/HeroSection';
+// HeroSection dinonaktifkan sementara (lihat blok komentar JSX) — aktifkan kembali import jika dipakai
 import QuizSection from './components/quiz/QuizSection';
 import AuthPages from './components/auth/AuthPages';
 import StudentDashboard from './components/dashboard/StudentDashboard';
@@ -157,6 +157,10 @@ export default function App() {
 
   // Logout Akun -> Kembali ke Halaman Login Utama
   const handleLogout = () => {
+    // Keluarkan sesi Firebase juga (jika ada) tanpa menahan logout lokal
+    import('./lib/firebaseService')
+      .then(({ firebaseSignOut }) => firebaseSignOut())
+      .catch(() => {});
     logoutUser();
     setAuthUser(null);
     setCurrentView('auth');
@@ -229,6 +233,7 @@ export default function App() {
         currentView={currentView}
         onNavigateHome={handleBackToHome}
         onOpen5EStage={handleOpen5EStage}
+        onNotify={showToast}
       />
 
       {/* Main Content Area */}

@@ -7,6 +7,7 @@ import {
   resetQuizDraft,
   startNewQuizAttempt,
 } from '../../lib/localStore';
+import { enqueuePendingAttempt } from '../../lib/syncService';
 
 /**
  * Komponen Kuis Interaktif (QuizSection) untuk Modul 1: Larutan Asam dan Basa
@@ -130,6 +131,22 @@ export default function QuizSection({ onUpdateProgress }) {
     });
 
     setSession(submitted);
+
+    // Masukkan hasil attempt ke antrean sinkronisasi cloud (dikirim via menu Simpan / Coba Kirim Lagi)
+    try {
+      enqueuePendingAttempt({
+        attemptId: submitted.attemptId,
+        moduleId: submitted.moduleId,
+        stage: 'evaluate',
+        answers: submitted.answers,
+        startedAt: submitted.startedAt,
+        endedAt: submitted.submittedAt,
+        score: submitted.score,
+        version: submitted.version,
+      });
+    } catch (err) {
+      console.warn('[QuizSection] Gagal mengantrekan attempt untuk sinkronisasi:', err);
+    }
 
     // Integrasi progres modul (otomatis 100% jika tuntas kuis)
     if (onUpdateProgress) {
