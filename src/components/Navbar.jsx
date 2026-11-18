@@ -84,7 +84,7 @@ export default function Navbar({
       setPendingCount(result.pending ?? 0);
 
       if (result.reason === 'not-signed-in') {
-        onNotify('Hasil kuis belum terkirim. Masuk dengan Google (tab Siswa/Guru) di halaman login.');
+        onNotify('Hasil kuis belum terkirim. Masuk dengan Google di halaman login untuk menyinkronkan.');
       } else if (result.reason === 'empty') {
         onNotify('✅ Semua hasil kuis sudah tersinkron ke akun.');
       } else if (result.failed === 0) {
