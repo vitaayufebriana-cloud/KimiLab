@@ -42,6 +42,7 @@ export default function TeacherDashboard({
 
   // Statistik Agregat Kelas
   const totalStudents = students.length;
+  const funnelTotal = Math.max(totalStudents, 1); // hindari pembagian nol saat belum ada siswa
   const evaluatedStudents = students.filter((s) => s.quizScore !== null);
   const avgQuizScore = evaluatedStudents.length > 0
     ? Math.round(evaluatedStudents.reduce((sum, s) => sum + s.quizScore, 0) / evaluatedStudents.length)
@@ -164,16 +165,21 @@ export default function TeacherDashboard({
         </div>
 
         <div className="funnel-bars-container">
+          {totalStudents === 0 && (
+            <p style={{ fontSize: '13px', color: '#94a3b8', padding: '8px 2px' }}>
+              Belum ada siswa nyata yang terdaftar di browser ini — distribusi 5E akan terisi setelah siswa registrasi (akun demo dikecualikan).
+            </p>
+          )}
           <div className="funnel-row">
             <div className="funnel-label-row">
               <span>💡 Tahap 1: Engage (Apersepsi & Prediksi Fenomena)</span>
-              <span><strong>{funnelCounts.engage}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.engage / totalStudents) * 100)}%)</span>
+              <span><strong>{funnelCounts.engage}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.engage / funnelTotal) * 100)}%)</span>
             </div>
             <div className="funnel-track">
               <div
                 className="funnel-fill"
                 style={{
-                  width: `${(funnelCounts.engage / totalStudents) * 100}%`,
+                  width: `${(funnelCounts.engage / funnelTotal) * 100}%`,
                   background: 'linear-gradient(90deg, #eab308, #facc15)',
                 }}
               ></div>
@@ -183,13 +189,13 @@ export default function TeacherDashboard({
           <div className="funnel-row">
             <div className="funnel-label-row">
               <span>🔬 Tahap 2: Explore (Laboratorium Virtual Asam-Basa)</span>
-              <span><strong>{funnelCounts.explore}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.explore / totalStudents) * 100)}%)</span>
+              <span><strong>{funnelCounts.explore}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.explore / funnelTotal) * 100)}%)</span>
             </div>
             <div className="funnel-track">
               <div
                 className="funnel-fill"
                 style={{
-                  width: `${(funnelCounts.explore / totalStudents) * 100}%`,
+                  width: `${(funnelCounts.explore / funnelTotal) * 100}%`,
                   background: 'linear-gradient(90deg, #06b6d4, #38bdf8)',
                 }}
               ></div>
@@ -199,13 +205,13 @@ export default function TeacherDashboard({
           <div className="funnel-row">
             <div className="funnel-label-row">
               <span>📚 Tahap 3: Explain (12 Konsep Kimia Terpadu)</span>
-              <span><strong>{funnelCounts.explain}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.explain / totalStudents) * 100)}%)</span>
+              <span><strong>{funnelCounts.explain}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.explain / funnelTotal) * 100)}%)</span>
             </div>
             <div className="funnel-track">
               <div
                 className="funnel-fill"
                 style={{
-                  width: `${(funnelCounts.explain / totalStudents) * 100}%`,
+                  width: `${(funnelCounts.explain / funnelTotal) * 100}%`,
                   background: 'linear-gradient(90deg, #3b82f6, #6366f1)',
                 }}
               ></div>
@@ -215,13 +221,13 @@ export default function TeacherDashboard({
           <div className="funnel-row">
             <div className="funnel-label-row">
               <span>🧪 Tahap 4: Elaborate (Studi Kasus Limbah Cair Tahu)</span>
-              <span><strong>{funnelCounts.elaborate}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.elaborate / totalStudents) * 100)}%)</span>
+              <span><strong>{funnelCounts.elaborate}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.elaborate / funnelTotal) * 100)}%)</span>
             </div>
             <div className="funnel-track">
               <div
                 className="funnel-fill"
                 style={{
-                  width: `${(funnelCounts.elaborate / totalStudents) * 100}%`,
+                  width: `${(funnelCounts.elaborate / funnelTotal) * 100}%`,
                   background: 'linear-gradient(90deg, #10b981, #34d399)',
                 }}
               ></div>
@@ -231,13 +237,13 @@ export default function TeacherDashboard({
           <div className="funnel-row">
             <div className="funnel-label-row">
               <span>📝 Tahap 5: Evaluate (Kuis Evaluasi Komprehensif)</span>
-              <span><strong>{funnelCounts.evaluate}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.evaluate / totalStudents) * 100)}%)</span>
+              <span><strong>{funnelCounts.evaluate}</strong> dari {totalStudents} siswa ({Math.round((funnelCounts.evaluate / funnelTotal) * 100)}%)</span>
             </div>
             <div className="funnel-track">
               <div
                 className="funnel-fill"
                 style={{
-                  width: `${(funnelCounts.evaluate / totalStudents) * 100}%`,
+                  width: `${(funnelCounts.evaluate / funnelTotal) * 100}%`,
                   background: 'linear-gradient(90deg, #a855f7, #c084fc)',
                 }}
               ></div>
@@ -326,7 +332,9 @@ export default function TeacherDashboard({
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: '700', color: '#38bdf8' }}>{std.progressPercent}%</span>
+                          <span style={{ fontWeight: '700', color: '#38bdf8' }}>
+                            {std.progressPercent !== null ? `${std.progressPercent}%` : '–'}
+                          </span>
                         </div>
                       </td>
                       <td>
@@ -346,7 +354,9 @@ export default function TeacherDashboard({
               ) : (
                 <tr>
                   <td colSpan="8" style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
-                    Tidak ada siswa yang cocok dengan filter pencarian.
+                    {students.length === 0
+                      ? 'Belum ada siswa yang registrasi di browser ini (selain akun demo).'
+                      : 'Tidak ada siswa yang cocok dengan filter pencarian.'}
                   </td>
                 </tr>
               )}
