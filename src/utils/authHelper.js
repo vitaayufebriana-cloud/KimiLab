@@ -2,10 +2,11 @@
  * authHelper.js - Utilitas Manajemen Autentikasi Client-Side & Role-Based Access
  * Sesuai Aturan Arsitektur & Kebutuhan KimiLab:
  * - 100% Client-Side menggunakan localStorage browser (tanpa remote backend).
- * - Pemisahan Peran (Role): 'siswa' (Siswa SMA) dan 'guru' (Pendidik/Guru Kimia).
+ * - Pemisahan Peran (Role): 'siswa' (Siswa SMA) dan 'guru' (Pendidik/Guru Kimia), ditentukan otomatis dari akun tersimpan.
  * - Akun demonstrasi bawaan untuk Siswa dan Guru.
  * - Registrasi akun siswa lengkap (nama, email, username, password, kelas, sekolah).
  * - Registrasi akun guru lengkap (nama, email, username, password, sekolah, kode verifikasi pendidik).
+ * - Google baru sebagai guru memerlukan kode verifikasi pendidik; tanpa kode default sebagai siswa.
  * - Fitur lupa kata sandi bertahap dengan instruksi pemulihan.
  * - Penyediaan daftar siswa terdaftar & kohort kelas untuk Dashboard Guru.
  */
@@ -13,6 +14,19 @@
 const AUTH_USER_KEY = 'kimilab_auth_user';
 const REGISTERED_USERS_KEY = 'kimilab_registered_users';
 export const STANDARD_TEACHER_CODE = 'GURU-KIMILAB-2026';
+
+const VALID_TEACHER_CODES = [
+  STANDARD_TEACHER_CODE,
+  'GURUKIMIA',
+  'KIMILAB2026',
+  'KIMIA2026',
+  'PENDIDIK-KIMIA',
+];
+
+const isValidTeacherCode = (code) => {
+  const cleanCode = (code || '').trim().toUpperCase();
+  return VALID_TEACHER_CODES.includes(cleanCode) || cleanCode.startsWith('GURU-') || cleanCode.length >= 8;
+};
 
 // Akun demonstrasi awal
 const DEFAULT_DEMO_USERS = [
@@ -225,11 +239,11 @@ export const setCurrentAuthUser = (user, _remember = true) => {
 };
 
 /**
- * Proses Login Berdasarkan Peran (Siswa atau Guru)
- * @param {{ identifier: string, password: string, role?: 'siswa' | 'guru', rememberMe?: boolean }} credentials
+ * Proses Login dengan peran yang diambil otomatis dari data akun tersimpan
+ * @param {{ identifier: string, password: string, rememberMe?: boolean }} credentials
  * @returns {{ success: boolean, user?: object, message: string }}
  */
-export const loginUser = ({ identifier, password, role = 'siswa', rememberMe = true }) => {
+export const loginUser = ({ identifier, password, rememberMe = true }) => {
   const cleanId = (identifier || '').trim().toLowerCase();
   const cleanPass = (password || '').trim();
 
@@ -255,17 +269,6 @@ export const loginUser = ({ identifier, password, role = 'siswa', rememberMe = t
     return {
       success: false,
       message: 'Kata sandi tidak sesuai. Silakan coba lagi atau gunakan fitur Lupa Kata Sandi.',
-    };
-  }
-
-  // Validasi kecocokan role (Siswa vs Guru)
-  const userRole = (found.role || 'siswa').toLowerCase();
-  const targetRole = (role || 'siswa').toLowerCase();
-  if (userRole !== targetRole && !(userRole === 'siswa' && targetRole === 'siswa')) {
-    const actualLabel = userRole === 'guru' ? 'Guru' : 'Siswa';
-    return {
-      success: false,
-      message: `Akun ini terdaftar sebagai peran ${actualLabel}. Silakan ganti tab ke login sebagai ${actualLabel}.`,
     };
   }
 
@@ -369,14 +372,7 @@ export const registerTeacher = ({ name, email, username, password, sekolah, kode
   }
 
   // Validasi kode verifikasi pendidik
-  const validCodes = [
-    STANDARD_TEACHER_CODE,
-    'GURUKIMIA',
-    'KIMILAB2026',
-    'KIMIA2026',
-    'PENDIDIK-KIMIA',
-  ];
-  const isCodeValid = validCodes.includes(cleanCode) || cleanCode.startsWith('GURU-') || cleanCode.length >= 8;
+  const isCodeValid = isValidTeacherCode(cleanCode);
 
   if (!isCodeValid) {
     return {
@@ -500,25 +496,6 @@ export const resetPassword = ({ identifier, newPassword }) => {
 };
 
 /**
- * Masuk Cepat sebagai Mode Tamu (Anonim Siswa)
- */
-export const loginAsGuest = (role = 'siswa') => {
-  const guestUser = {
-    name: role === 'guru' ? 'Guru Tamu' : 'Siswa Tamu',
-    username: 'tamu_' + Math.floor(1000 + Math.random() * 9000),
-    email: 'tamu@kimilab.local',
-    role: role,
-    kelas: role === 'siswa' ? 'XI MIPA' : undefined,
-    sekolah: 'SMA Mandiri',
-    isGuest: true,
-    loginAt: new Date().toISOString(),
-  };
-
-  setCurrentAuthUser(guestUser, false);
-  return guestUser;
-};
-
-/**
  * Logout
  */
 export const logoutUser = () => {
@@ -527,33 +504,23 @@ export const logoutUser = () => {
 
 /**
  * Login / registrasi akun lokal untuk penyedia Google.
- * Role mengikuti pilihan tab (Siswa/Guru) di panel login.
- * - Jika email sudah terdaftar: pakai akun tersebut (role harus cocok dengan tab aktif).
- * - Jika belum: buat profil lokal baru bertanda provider 'google'
- *   (tanpa password — hanya bisa masuk lewat Google).
- * @param {{ name?: string, email?: string, role?: 'siswa' | 'guru' }} profile
+ * - Jika email sudah terdaftar: peran diambil dari akun tersebut.
+ * - Jika belum: default siswa; kode verifikasi guru yang valid mendaftarkan sebagai guru.
+ * @param {{ name?: string, email?: string, teacherCode?: string }} profile
  * @returns {{ success: boolean, user?: object, message: string }}
  */
-export const loginWithGoogleProfile = ({ name, email, role = 'siswa' }) => {
+export const loginWithGoogleProfile = ({ name, email, teacherCode }) => {
   const cleanEmail = (email || '').trim().toLowerCase();
   if (!cleanEmail) {
     return { success: false, message: 'Google tidak mengembalikan alamat email. Coba lagi.' };
   }
 
-  const targetRole = (role || 'siswa').toLowerCase() === 'guru' ? 'guru' : 'siswa';
+  const cleanTeacherCode = (teacherCode || '').trim().toUpperCase();
   const emailDomain = cleanEmail.split('@')[1] || '';
   const users = getRegisteredUsers();
   const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
   if (found) {
-    const foundRole = (found.role || 'siswa').toLowerCase();
-    if (foundRole !== targetRole) {
-      const label = foundRole === 'guru' ? 'Guru' : 'Siswa';
-      return {
-        success: false,
-        message: `Akun Google ini terdaftar sebagai peran ${label}. Silakan ganti tab ke login sebagai ${label}.`,
-      };
-    }
     const activeUser = {
       name: found.name,
       username: found.username,
@@ -568,7 +535,17 @@ export const loginWithGoogleProfile = ({ name, email, role = 'siswa' }) => {
     return { success: true, user: activeUser, message: `Selamat datang kembali, ${activeUser.name}!` };
   }
 
-  // Profil baru dari Google
+  let targetRole = 'siswa';
+  if (cleanTeacherCode) {
+    if (!isValidTeacherCode(cleanTeacherCode)) {
+      return {
+        success: false,
+        message: `Kode verifikasi guru tidak valid. Gunakan kode standar: ${STANDARD_TEACHER_CODE}`,
+      };
+    }
+    targetRole = 'guru';
+  }
+
   const displayName = (name || '').trim() || cleanEmail.split('@')[0];
   let username = cleanEmail.split('@')[0];
   if (users.some((u) => (u.username || '').toLowerCase() === username.toLowerCase())) {
@@ -579,10 +556,11 @@ export const loginWithGoogleProfile = ({ name, email, role = 'siswa' }) => {
     name: displayName,
     username,
     email: cleanEmail,
-    password: `google-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`, // tidak dipakai untuk login password
+    password: `google-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`,
     role: targetRole,
     kelas: targetRole === 'siswa' ? 'XI MIPA 1' : undefined,
     sekolah: emailDomain ? emailDomain : 'SMA',
+    kodeVerifikasi: targetRole === 'guru' ? cleanTeacherCode : undefined,
     provider: 'google',
     createdAt: new Date().toISOString(),
   };
