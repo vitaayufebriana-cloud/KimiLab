@@ -5,45 +5,20 @@ import {
   registerTeacher,
   requestPasswordReset,
   resetPassword,
-  loginAsGuest,
   loginWithGoogleProfile,
   STANDARD_TEACHER_CODE,
 } from '../../utils/authHelper';
 import './AuthPages.css';
 
-/**
- * Komponen Halaman Autentikasi KimiLab (Halaman Pertama)
- * Sesuai Permintaan Spesifikasi:
- * 1. Pilihan Role: Siswa & Guru
- * 2. Login Siswa & Login Guru terpisah dengan role-based redirect
- * 3. Registrasi Akun Siswa (Nama, Email, Username, Password, Konfirmasi, Kelas, Asal Sekolah)
- * 4. Registrasi Akun Guru (Nama, Email, Username, Password, Konfirmasi, Asal Sekolah, Kode Verifikasi)
- * 5. Lupa Kata Sandi Bertahap (Input Email -> Instruksi -> Buat Password Baru)
- * 6. Visual Laboratorium Kimia Digital (Molekul, Tabung Reaksi, Skala pH, Dark Theme)
- * 
- * @param {{
- *   initialMode?: 'login' | 'register' | 'forgot',
- *   onBackToHome?: () => void,
- *   onAuthSuccess: (user: object, message: string) => void
- * }} props
- */
-export default function AuthPages({
-  initialMode = 'login',
-  onBackToHome,
-  onAuthSuccess,
-}) {
-  // Mode autentikasi: 'login' | 'register' | 'forgot'
+export default function AuthPages({ initialMode = 'login', onBackToHome, onAuthSuccess }) {
   const [mode, setMode] = useState(initialMode);
-  // Role aktif: 'siswa' | 'guru'
-  const [activeRole, setActiveRole] = useState('siswa');
+  const [registerRole, setRegisterRole] = useState('siswa');
 
-  // Form State - Login
   const [loginId, setLoginId] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [googleTeacherCode, setGoogleTeacherCode] = useState('');
 
-  // Form State - Registrasi Siswa
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [studentUsername, setStudentUsername] = useState('');
@@ -52,7 +27,6 @@ export default function AuthPages({
   const [studentClass, setStudentClass] = useState('XI MIPA 1');
   const [studentSchool, setStudentSchool] = useState('');
 
-  // Form State - Registrasi Guru
   const [teacherName, setTeacherName] = useState('');
   const [teacherEmail, setTeacherEmail] = useState('');
   const [teacherUsername, setTeacherUsername] = useState('');
@@ -61,182 +35,37 @@ export default function AuthPages({
   const [teacherSchool, setTeacherSchool] = useState('');
   const [teacherCode, setTeacherCode] = useState(STANDARD_TEACHER_CODE);
 
-  // Form State - Lupa Kata Sandi (2 Step)
-  const [forgotStep, setForgotStep] = useState(1); // 1 = input email, 2 = buat password baru
+  const [forgotStep, setForgotStep] = useState(1);
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotNewPassword, setForgotNewPassword] = useState('');
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState('');
   const [showForgotPwd, setShowForgotPwd] = useState(false);
 
-  // Status Notifikasi / Alert
   const [alert, setAlert] = useState({ type: '', message: '' });
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const clearAlert = () => setAlert({ type: '', message: '' });
 
-  // Autofill Akun Demonstrasi untuk Pengujian Instan
-  const handleAutofillDemo = (role) => {
-    setMode('login');
-    setActiveRole(role);
-    if (role === 'siswa') {
-      setLoginId('siswa@kimilab.id');
-      setLoginPassword('password123');
-      setAlert({
-        type: 'success',
-        message: '⚡ Akun Siswa Demo terisi: siswa@kimilab.id / password123',
-      });
-    } else {
-      setLoginId('guru@kimilab.id');
-      setLoginPassword('password123');
-      setAlert({
-        type: 'success',
-        message: '⚡ Akun Guru Demo terisi: guru@kimilab.id / password123',
-      });
-    }
+  const switchMode = (nextMode) => {
+    setMode(nextMode);
+    setAlert({ type: '', message: '' });
+    if (nextMode === 'forgot') setForgotStep(1);
   };
 
-  // Submit Login
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
+  const handleLoginSubmit = (event) => {
+    event.preventDefault();
     clearAlert();
 
-    const res = loginUser({
-      identifier: loginId,
-      password: loginPassword,
-      role: activeRole,
-      rememberMe,
-    });
-
-    if (res.success) {
-      setAlert({ type: 'success', message: res.message });
-      if (onAuthSuccess) {
-        onAuthSuccess(res.user, res.message);
-      }
-    } else {
-      setAlert({ type: 'error', message: res.message });
-    }
-  };
-
-  // Submit Registrasi Siswa
-  const handleStudentRegisterSubmit = (e) => {
-    e.preventDefault();
-    clearAlert();
-
-    if (studentPassword !== studentConfirmPassword) {
-      setAlert({
-        type: 'error',
-        message: 'Konfirmasi kata sandi siswa tidak cocok. Mohon teliti kembali.',
-      });
+    const result = loginUser({ identifier: loginId, password: loginPassword });
+    if (!result.success) {
+      setAlert({ type: 'error', message: result.message });
       return;
     }
 
-    const res = registerStudent({
-      name: studentName,
-      email: studentEmail,
-      username: studentUsername,
-      password: studentPassword,
-      kelas: studentClass,
-      sekolah: studentSchool,
-    });
-
-    if (res.success) {
-      setAlert({ type: 'success', message: res.message });
-      if (onAuthSuccess) {
-        onAuthSuccess(res.user, res.message);
-      }
-    } else {
-      setAlert({ type: 'error', message: res.message });
-    }
+    setAlert({ type: 'success', message: result.message });
+    onAuthSuccess?.(result.user, result.message);
   };
 
-  // Submit Registrasi Guru
-  const handleTeacherRegisterSubmit = (e) => {
-    e.preventDefault();
-    clearAlert();
-
-    if (teacherPassword !== teacherConfirmPassword) {
-      setAlert({
-        type: 'error',
-        message: 'Konfirmasi kata sandi guru tidak cocok. Harap periksa kembali.',
-      });
-      return;
-    }
-
-    const res = registerTeacher({
-      name: teacherName,
-      email: teacherEmail,
-      username: teacherUsername,
-      password: teacherPassword,
-      sekolah: teacherSchool,
-      kodeVerifikasi: teacherCode,
-    });
-
-    if (res.success) {
-      setAlert({ type: 'success', message: res.message });
-      if (onAuthSuccess) {
-        onAuthSuccess(res.user, res.message);
-      }
-    } else {
-      setAlert({ type: 'error', message: res.message });
-    }
-  };
-
-  // Submit Lupa Password - Step 1: Request Reset
-  const handleForgotRequestSubmit = (e) => {
-    e.preventDefault();
-    clearAlert();
-
-    const res = requestPasswordReset(forgotEmail);
-    if (res.success) {
-      setAlert({ type: 'success', message: res.message });
-      setForgotStep(2);
-    } else {
-      setAlert({ type: 'error', message: res.message });
-    }
-  };
-
-  // Submit Lupa Password - Step 2: Buat Password Baru
-  const handleForgotSetNewSubmit = (e) => {
-    e.preventDefault();
-    clearAlert();
-
-    if (forgotNewPassword !== forgotConfirmPassword) {
-      setAlert({
-        type: 'error',
-        message: 'Konfirmasi kata sandi baru tidak sesuai.',
-      });
-      return;
-    }
-
-    const res = resetPassword({
-      identifier: forgotEmail,
-      newPassword: forgotNewPassword,
-    });
-
-    if (res.success) {
-      setAlert({ type: 'success', message: res.message });
-      setTimeout(() => {
-        setMode('login');
-        setForgotStep(1);
-        setLoginId(forgotEmail);
-        setLoginPassword(forgotNewPassword);
-      }, 1500);
-    } else {
-      setAlert({ type: 'error', message: res.message });
-    }
-  };
-
-  // Mode Tamu Anonim
-  const handleGuestLogin = () => {
-    const guest = loginAsGuest(activeRole);
-    const msg = `🎉 Anda masuk sebagai ${activeRole === 'guru' ? 'Guru Tamu' : 'Siswa Tamu'}. Selamat belajar!`;
-    setAlert({ type: 'success', message: msg });
-    if (onAuthSuccess) {
-      onAuthSuccess(guest, msg);
-    }
-  };
-
-  // Masuk dengan Google — role mengikuti tab yang dipilih (Siswa / Guru)
   const handleGoogleLogin = async () => {
     if (googleLoading) return;
     setGoogleLoading(true);
@@ -254,795 +83,447 @@ export default function AuthPages({
       const local = loginWithGoogleProfile({
         name: result.user.displayName,
         email: result.user.email,
-        role: activeRole,
+        teacherCode: googleTeacherCode,
       });
 
       if (!local.success) {
-        // Role lokal tidak cocok — akhiri sesi Firebase agar tidak setengah login
         await firebaseSignOut();
         setAlert({ type: 'error', message: local.message });
         return;
       }
 
-      const msg = `Selamat datang, ${local.user.name}!`;
-      setAlert({ type: 'success', message: msg });
-      if (onAuthSuccess) {
-        onAuthSuccess(local.user, local.message || msg);
-      }
-    } catch (err) {
-      console.error('[AuthPages] Login Google gagal:', err);
+      setAlert({ type: 'success', message: local.message });
+      onAuthSuccess?.(local.user, local.message);
+    } catch (error) {
       setAlert({
         type: 'error',
-        message: err?.message || 'Gagal masuk dengan Google. Silakan coba lagi.',
+        message: error?.message || 'Gagal masuk dengan Google. Silakan coba lagi.',
       });
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  const switchMode = (newMode) => {
-    setMode(newMode);
+  const handleStudentRegisterSubmit = (event) => {
+    event.preventDefault();
     clearAlert();
+
+    if (studentPassword !== studentConfirmPassword) {
+      setAlert({ type: 'error', message: 'Konfirmasi kata sandi tidak cocok.' });
+      return;
+    }
+
+    const result = registerStudent({
+      name: studentName,
+      email: studentEmail,
+      username: studentUsername,
+      password: studentPassword,
+      kelas: studentClass,
+      sekolah: studentSchool,
+    });
+
+    if (!result.success) {
+      setAlert({ type: 'error', message: result.message });
+      return;
+    }
+
+    setAlert({ type: 'success', message: result.message });
+    onAuthSuccess?.(result.user, result.message);
   };
 
+  const handleTeacherRegisterSubmit = (event) => {
+    event.preventDefault();
+    clearAlert();
+
+    if (teacherPassword !== teacherConfirmPassword) {
+      setAlert({ type: 'error', message: 'Konfirmasi kata sandi tidak cocok.' });
+      return;
+    }
+
+    const result = registerTeacher({
+      name: teacherName,
+      email: teacherEmail,
+      username: teacherUsername,
+      password: teacherPassword,
+      sekolah: teacherSchool,
+      kodeVerifikasi: teacherCode,
+    });
+
+    if (!result.success) {
+      setAlert({ type: 'error', message: result.message });
+      return;
+    }
+
+    setAlert({ type: 'success', message: result.message });
+    onAuthSuccess?.(result.user, result.message);
+  };
+
+  const handleForgotRequestSubmit = (event) => {
+    event.preventDefault();
+    clearAlert();
+
+    const result = requestPasswordReset(forgotEmail);
+    if (!result.success) {
+      setAlert({ type: 'error', message: result.message });
+      return;
+    }
+
+    setAlert({ type: 'success', message: result.message });
+    setForgotEmail(result.identifier);
+    setForgotStep(2);
+  };
+
+  const handleForgotSetNewSubmit = (event) => {
+    event.preventDefault();
+    clearAlert();
+
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setAlert({ type: 'error', message: 'Konfirmasi kata sandi baru tidak sesuai.' });
+      return;
+    }
+
+    const result = resetPassword({
+      identifier: forgotEmail,
+      newPassword: forgotNewPassword,
+    });
+
+    if (!result.success) {
+      setAlert({ type: 'error', message: result.message });
+      return;
+    }
+
+    setLoginId(forgotEmail);
+    setLoginPassword(forgotNewPassword);
+    setForgotNewPassword('');
+    setForgotConfirmPassword('');
+    setForgotStep(1);
+    setMode('login');
+    setAlert({ type: 'success', message: result.message });
+  };
+
+  const renderWatermarks = () => (
+    <div className="auth-watermarks" aria-hidden="true">
+      <svg className="auth-watermark auth-watermark-flask" viewBox="0 0 120 150" fill="none">
+        <path d="M45 18h30M52 18v42L22 116a10 10 0 0 0 9 15h58a10 10 0 0 0 9-15L68 60V18" />
+        <path d="M36 104h48" />
+        <circle cx="54" cy="119" r="4" />
+        <circle cx="70" cy="126" r="3" />
+      </svg>
+      <svg className="auth-watermark auth-watermark-ring" viewBox="0 0 140 140" fill="none">
+        <path d="M70 16l47 27v54l-47 27-47-27V43z" />
+        <circle cx="70" cy="70" r="27" />
+        <path d="M70 43v54M46 56l48 28M94 56L46 84" />
+      </svg>
+      <svg className="auth-watermark auth-watermark-atom" viewBox="0 0 140 140" fill="none">
+        <circle cx="70" cy="70" r="8" />
+        <ellipse cx="70" cy="70" rx="52" ry="20" />
+        <ellipse cx="70" cy="70" rx="52" ry="20" transform="rotate(60 70 70)" />
+        <ellipse cx="70" cy="70" rx="52" ry="20" transform="rotate(120 70 70)" />
+      </svg>
+    </div>
+  );
+
   return (
-    <div className="auth-page-wrapper">
-      {/* Background Digital Lab Grid & Molecular Glow */}
-      <div className="auth-digital-grid" aria-hidden="true"></div>
-      <div className="auth-glow-cyan" aria-hidden="true"></div>
-      <div className="auth-glow-navy" aria-hidden="true"></div>
+    <div className="auth-page">
+      {renderWatermarks()}
 
-      {/* Top Header Bar */}
-      <header className="auth-top-bar">
-        <div className="auth-brand-logo">
-          <div className="auth-brand-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <path d="M10 2v7.31L4.2 20.2a1 1 0 0 0 .8 1.8h14a1 1 0 0 0 .8-1.8L14 9.31V2" />
-              <path d="M8.5 2h7" />
-              <path d="M7 16h10" />
+      <div className="auth-shell">
+        <header className="auth-header">
+          <div className="auth-brand">
+            <svg className="auth-brand-icon" viewBox="0 0 48 48" aria-hidden="true">
+              <polygon points="24,3 42,13.5 42,34.5 24,45 6,34.5 6,13.5" fill="none" stroke="#00529C" strokeWidth="2.4" />
+              <ellipse cx="24" cy="24" rx="17" ry="6.5" fill="none" stroke="#FACC15" strokeWidth="2.2" transform="rotate(-28 24 24)" />
+              <ellipse cx="24" cy="24" rx="17" ry="6.5" fill="none" stroke="#FACC15" strokeWidth="2.2" transform="rotate(28 24 24)" />
+              <circle cx="24" cy="24" r="4" fill="#00529C" />
+              <text x="24" y="27.5" textAnchor="middle" fontSize="6" fontWeight="800" fill="#FFFFFF">K</text>
             </svg>
+            <span className="auth-brand-name">
+              <span className="auth-brand-kimi">Kimi</span>
+              <span className="auth-brand-lab">Lab</span>
+            </span>
           </div>
-          <div className="auth-brand-name">
-            Kimi<span>Lab</span>
-            <span className="auth-brand-subtitle">Laboratorium Kimia Digital SMA</span>
-          </div>
-        </div>
+          <h1 className="auth-heading">Selamat Datang di KimiLab</h1>
+          <p className="auth-subheading">Masuk untuk melanjutkan pembelajaran kimia Anda.</p>
+        </header>
 
-        {/* Tab Switcher 3 Halaman Autentikasi */}
-        <div className="auth-tabs-pill" role="tablist" aria-label="Navigasi Halaman Autentikasi">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'login'}
-            className={`auth-tab-item ${mode === 'login' ? 'active' : ''}`}
-            onClick={() => switchMode('login')}
-          >
-            🔐 1. Masuk (Login)
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'register'}
-            className={`auth-tab-item ${mode === 'register' ? 'active' : ''}`}
-            onClick={() => switchMode('register')}
-          >
-            📝 2. Registrasi Akun
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'forgot'}
-            className={`auth-tab-item ${mode === 'forgot' ? 'active' : ''}`}
-            onClick={() => switchMode('forgot')}
-          >
-            🔑 3. Lupa Kata Sandi
-          </button>
-        </div>
-
-        {/* Quick Demo Autofill Buttons & Optional Back to Home */}
-        <div className="auth-demo-actions">
-          {onBackToHome && (
-            <button
-              type="button"
-              className="auth-back-btn"
-              onClick={onBackToHome}
-              title="Kembali ke Beranda"
-            >
-              <span>← Beranda</span>
-            </button>
-          )}
-          <button
-            type="button"
-            className="auth-demo-badge"
-            onClick={() => handleAutofillDemo('siswa')}
-            title="Uji coba cepat dengan akun siswa demo"
-          >
-            ⚡ Demo Siswa
-          </button>
-          <button
-            type="button"
-            className="auth-demo-badge auth-demo-teacher"
-            onClick={() => handleAutofillDemo('guru')}
-            title="Uji coba cepat dengan akun guru demo"
-          >
-            👨‍🏫 Demo Guru
-          </button>
-        </div>
-      </header>
-
-      {/* Main Authentication Card */}
-      <main className="auth-main-card">
-        {/* Panel Kiri: Ilustrasi Visual Laboratorium Digital 5E */}
-        <div className="auth-visual-panel">
-          <div className="auth-visual-overlay"></div>
-
-          {/* Molecular Floating Elements */}
-          <div className="molecule-particle m-1" aria-hidden="true">
-            <span>H⁺</span>
-          </div>
-          <div className="molecule-particle m-2" aria-hidden="true">
-            <span>OH⁻</span>
-          </div>
-          <div className="molecule-particle m-3" aria-hidden="true">
-            <span>pH</span>
-          </div>
-          <div className="molecule-particle m-4" aria-hidden="true">
-            <span>H₂O</span>
-          </div>
-
-          <div className="auth-visual-content">
-            <div className="auth-role-tag">
-              <span>🔬 MEDIA PEMBELAJARAN KIMIA KELAS XI</span>
-            </div>
-
-            <h2 className="auth-visual-title">
-              {mode === 'login' && 'PORTAL MASUK KIMILAB'}
-              {mode === 'register' && 'GABUNG LABORATORIUM DIGITAL'}
-              {mode === 'forgot' && 'PULIHKAN AKSES AKUN'}
-            </h2>
-
-            <p className="auth-visual-desc">
-              Platform pembelajaran kimia interaktif materi <strong>Larutan Asam-Basa</strong> berbasis sintaks
-              <strong> Learning Cycle 5E</strong> (Engage, Explore, Explain, Elaborate, Evaluate) dengan representasi
-              makroskopik, submikroskopik, dan simbolik.
-            </p>
-
-            <div className="auth-5e-mini-flow">
-              <div className="flow-step">
-                <span className="dot dot-1"></span>
-                <span>💡 Engage</span>
-              </div>
-              <div className="flow-sep">→</div>
-              <div className="flow-step">
-                <span className="dot dot-2"></span>
-                <span>🔬 Explore</span>
-              </div>
-              <div className="flow-sep">→</div>
-              <div className="flow-step">
-                <span className="dot dot-3"></span>
-                <span>📚 Explain</span>
-              </div>
-              <div className="flow-sep">→</div>
-              <div className="flow-step">
-                <span className="dot dot-4"></span>
-                <span>🧪 Elaborate</span>
-              </div>
-              <div className="flow-sep">→</div>
-              <div className="flow-step">
-                <span className="dot dot-5"></span>
-                <span>📝 Evaluate</span>
-              </div>
-            </div>
-
-            <div className="auth-visual-features">
-              <div className="feat-row">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Simulasi pH & Laboratorium Virtual Interaktif</span>
-              </div>
-              <div className="feat-row">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Studi Kasus HOTS: Limbah Cair Industri Tahu</span>
-              </div>
-              <div className="feat-row">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2.5">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
-                <span>Evaluasi Kognitif C4–C5 & Pembahasan Ilmiah</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Panel Kanan: Formulir Interaktif Berdasarkan Role */}
-        <div className="auth-form-panel">
-          <div className="auth-form-container">
-            {/* Alert Notifikasi */}
+        <main className="auth-card" aria-label="Halaman autentikasi KimiLab">
+          <div className="auth-view" key={`${mode}-${mode === 'forgot' ? forgotStep : 'main'}`}>
             {alert.message && (
-              <div className={`auth-alert-box ${alert.type}`} role="alert">
-                <span className="alert-icon">
-                  {alert.type === 'success' ? '✓' : '⚠️'}
-                </span>
-                <span>{alert.message}</span>
+              <div
+                className={`auth-alert auth-alert-${alert.type}`}
+                role={alert.type === 'error' ? 'alert' : 'status'}
+              >
+                {alert.message}
               </div>
             )}
 
-            {/* Role Switcher Tab (Siswa vs Guru) */}
-            <div className="role-switcher-card" role="group" aria-label="Pilih Jenis Pengguna">
-              <span className="role-switcher-label">Pilih Jenis Pengguna:</span>
-              <div className="role-switcher-buttons">
-                <button
-                  type="button"
-                  id="tab-role-siswa"
-                  className={`role-btn ${activeRole === 'siswa' ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveRole('siswa');
-                    clearAlert();
-                  }}
-                  aria-pressed={activeRole === 'siswa'}
-                >
-                  <span className="role-icon">🎓</span>
-                  <span>Siswa SMA</span>
-                </button>
-                <button
-                  type="button"
-                  id="tab-role-guru"
-                  className={`role-btn ${activeRole === 'guru' ? 'active' : ''}`}
-                  onClick={() => {
-                    setActiveRole('guru');
-                    clearAlert();
-                  }}
-                  aria-pressed={activeRole === 'guru'}
-                >
-                  <span className="role-icon">👨‍🏫</span>
-                  <span>Guru / Pendidik</span>
-                </button>
-              </div>
-            </div>
-
-            {/* =============================================================
-                1. HALAMAN LOGIN (SIGN IN) - SISWA ATAU GURU
-                ============================================================= */}
             {mode === 'login' && (
-              <form onSubmit={handleLoginSubmit} noValidate className="auth-form">
-                <div className="form-header-row">
-                  <h1 className="auth-form-title">
-                    Masuk sebagai {activeRole === 'guru' ? 'Guru' : 'Siswa'}
-                  </h1>
-                  <span className="role-badge-pill">
-                    {activeRole === 'guru' ? 'Portal Pendidik' : 'Portal Belajar Siswa'}
-                  </span>
-                </div>
-                <p className="auth-form-subtitle">
-                  {activeRole === 'guru'
-                    ? 'Kelola daftar siswa, pantau perkembangan belajar sintaks 5E, dan analisis hasil kuis evaluasi.'
-                    : 'Akses modul pembelajaran asam-basa, jalankan simulasi lab, dan simpan catatan kemajuan belajarmu.'}
-                </p>
-
-                {/* Input Email / Username */}
-                <div className="auth-input-group">
-                  <label htmlFor="login-identifier" className="auth-input-label">
-                    Email atau Username
-                  </label>
-                  <div className="auth-input-box">
-                    <span className="auth-input-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="12" cy="7" r="4"></circle>
-                      </svg>
-                    </span>
+              <form className="auth-form" onSubmit={handleLoginSubmit}>
+                <div className="auth-field">
+                  <label htmlFor="login-identifier">Email/Username</label>
+                  <div className="auth-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                     <input
                       id="login-identifier"
                       type="text"
-                      className="auth-input-field"
-                      placeholder={activeRole === 'guru' ? 'guru@kimilab.id atau username' : 'siswa@kimilab.id atau username'}
+                      placeholder="Email atau Nama Pengguna"
                       value={loginId}
-                      onChange={(e) => setLoginId(e.target.value)}
-                      required
+                      onChange={(event) => setLoginId(event.target.value)}
                       autoComplete="username"
+                      required
                     />
                   </div>
                 </div>
 
-                {/* Input Password */}
-                <div className="auth-input-group">
-                  <label htmlFor="login-password" className="auth-input-label">
-                    Kata Sandi
-                  </label>
-                  <div className="auth-input-box">
-                    <span className="auth-input-icon" aria-hidden="true">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                      </svg>
-                    </span>
+                <div className="auth-field">
+                  <label htmlFor="login-password">Password</label>
+                  <div className="auth-input-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <rect x="4" y="10" width="16" height="11" rx="2" />
+                      <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                    </svg>
                     <input
                       id="login-password"
                       type={showLoginPassword ? 'text' : 'password'}
-                      className="auth-input-field"
-                      placeholder="Masukkan kata sandi akun"
+                      placeholder="Kata Sandi"
                       value={loginPassword}
-                      onChange={(e) => setLoginPassword(e.target.value)}
-                      required
+                      onChange={(event) => setLoginPassword(event.target.value)}
                       autoComplete="current-password"
+                      required
                     />
                     <button
                       type="button"
-                      className="auth-toggle-pwd-btn"
-                      onClick={() => setShowLoginPassword(!showLoginPassword)}
-                      aria-label="Toggle password visibility"
+                      className="auth-eye"
+                      onClick={() => setShowLoginPassword((visible) => !visible)}
+                      aria-label={showLoginPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                      aria-pressed={showLoginPassword}
                     >
-                      {showLoginPassword ? 'Sembunyikan' : 'Tampilkan'}
+                      {showLoginPassword ? (
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M3 3l18 18M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                          <path d="M9.9 5.2A10.7 10.7 0 0 1 12 5c5 0 9 4.5 9 7 0 1-.7 2.4-1.9 3.7M6.3 6.5C4.3 7.9 3 9.7 3 12c0 2.5 4 7 9 7 1.5 0 2.9-.4 4.1-1" />
+                        </svg>
+                      ) : (
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
                     </button>
                   </div>
                 </div>
 
-                {/* Remember Me & Lupa Password */}
-                <div className="auth-options-row">
-                  <label className="auth-checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <span>Ingat sesi saya</span>
-                  </label>
+                <button type="submit" className="auth-primary-btn">Masuk</button>
 
-                  <button
-                    type="button"
-                    className="auth-forgot-link"
-                    onClick={() => switchMode('forgot')}
-                  >
-                    Lupa Kata Sandi?
-                  </button>
-                </div>
-
-                {/* Tombol Login Utama */}
-                <button type="submit" id="btn-submit-login" className="auth-btn-primary">
-                  <span>Masuk ke {activeRole === 'guru' ? 'Beranda Guru' : 'Beranda Siswa'}</span>
-                  <span aria-hidden="true">→</span>
+                <button type="button" className="auth-text-link auth-forgot-link" onClick={() => switchMode('forgot')}>
+                  Lupa Sandi?
                 </button>
 
-                {/* Masuk dengan Google */}
-                <div className="auth-divider">
-                  <span>atau</span>
-                </div>
+                <div className="auth-divider"><span>atau</span></div>
 
-                <button
-                  type="button"
-                  className="auth-btn-google"
-                  onClick={handleGoogleLogin}
-                  disabled={googleLoading}
-                  title={`Masuk dengan akun Google sebagai ${activeRole === 'guru' ? 'Guru' : 'Siswa'}`}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29a11.86 11.86 0 0 0 0 10.76l3.98-3.09z"/>
-                    <path fill="#EA4335" d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.88 8.87 4.77 12 4.77z"/>
+                <button type="button" className="auth-google-btn" onClick={handleGoogleLogin} disabled={googleLoading}>
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z" />
+                    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29a11.86 11.86 0 0 0 0 10.76l3.98-3.09z" />
+                    <path fill="#EA4335" d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09C6.22 6.88 8.87 4.77 12 4.77z" />
                   </svg>
-                  <span>
-                    {googleLoading
-                      ? 'Menghubungkan ke Google…'
-                      : `Masuk dengan Google sebagai ${activeRole === 'guru' ? 'Guru' : 'Siswa'}`}
-                  </span>
+                  <span>{googleLoading ? 'Menghubungkan ke Google…' : 'Masuk dengan Google'}</span>
                 </button>
 
-                {/* Mode Tamu Instan */}
-                <div className="auth-divider">
-                  <span>Atau Akses Cepat</span>
-                </div>
+                <details className="auth-google-teacher">
+                  <summary>Instruktur? Verifikasi akun guru Google</summary>
+                  <label htmlFor="google-teacher-code">Kode Verifikasi Guru</label>
+                  <input
+                    id="google-teacher-code"
+                    type="text"
+                    placeholder="Isi hanya untuk akun guru baru"
+                    value={googleTeacherCode}
+                    onChange={(event) => setGoogleTeacherCode(event.target.value)}
+                    autoComplete="off"
+                  />
+                  <p>Tanpa kode, akun Google baru didaftarkan sebagai siswa.</p>
+                </details>
 
-                <button
-                  type="button"
-                  className="auth-btn-guest"
-                  onClick={handleGuestLogin}
-                  title="Belajar langsung tanpa registrasi akun"
-                >
-                  <span>⚡ Masuk Cepat sebagai {activeRole === 'guru' ? 'Guru Tamu' : 'Siswa Tamu'}</span>
-                </button>
-
-                {/* Switch to Registration */}
-                <div className="auth-footer-prompt">
-                  <span>Belum memiliki akun {activeRole === 'guru' ? 'Guru' : 'Siswa'}?</span>
-                  <button
-                    type="button"
-                    className="auth-switch-link"
-                    onClick={() => switchMode('register')}
-                  >
-                    Daftar Akun Baru
+                <p className="auth-bottom-prompt">
+                  Belum punya akun?{' '}
+                  <button type="button" className="auth-text-link auth-inline-link" onClick={() => switchMode('register')}>
+                    Daftar Sekarang
                   </button>
-                </div>
+                </p>
               </form>
             )}
 
-            {/* =============================================================
-                2. HALAMAN REGISTRASI (SIGN UP) - DUA FORM SPESIFIK ROLE
-                ============================================================= */}
             {mode === 'register' && (
-              <div className="auth-form">
-                <div className="form-header-row">
-                  <h1 className="auth-form-title">
-                    Registrasi Akun {activeRole === 'guru' ? 'Guru' : 'Siswa'}
-                  </h1>
-                  <span className="role-badge-pill">
-                    {activeRole === 'guru' ? 'Akun Pendidik' : 'Akun Pelajar'}
-                  </span>
+              <div className="auth-panel">
+                <h2 className="auth-view-title">Buat Akun KimiLab</h2>
+                <p className="auth-view-subtitle">Pilih peran Anda, lalu lengkapi data pendaftaran.</p>
+
+                <div className="auth-role-choice" role="group" aria-label="Pilih peran saat registrasi">
+                  <button
+                    type="button"
+                    aria-pressed={registerRole === 'siswa'}
+                    className={registerRole === 'siswa' ? 'active' : ''}
+                    onClick={() => {
+                      setRegisterRole('siswa');
+                      clearAlert();
+                    }}
+                  >
+                    Siswa
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={registerRole === 'guru'}
+                    className={registerRole === 'guru' ? 'active' : ''}
+                    onClick={() => {
+                      setRegisterRole('guru');
+                      clearAlert();
+                    }}
+                  >
+                    Guru
+                  </button>
                 </div>
-                <p className="auth-form-subtitle">
-                  {activeRole === 'guru'
-                    ? 'Daftarkan profil guru untuk memantau progres belajar siswa secara terpusat.'
-                    : 'Daftarkan diri untuk menyimpan riwayat tahapan 5E dan hasil nilai kuis kimia.'}
-                </p>
 
-                {/* FORM REGISTRASI SISWA */}
-                {activeRole === 'siswa' ? (
-                  <form onSubmit={handleStudentRegisterSubmit} noValidate>
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="std-name" className="auth-input-label">Nama Lengkap</label>
-                        <input
-                          id="std-name"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="Contoh: Ahmad Fauzan"
-                          value={studentName}
-                          onChange={(e) => setStudentName(e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="std-email" className="auth-input-label">Alamat Email</label>
-                        <input
-                          id="std-email"
-                          type="email"
-                          className="auth-input-field"
-                          placeholder="siswa@sekolah.sch.id"
-                          value={studentEmail}
-                          onChange={(e) => setStudentEmail(e.target.value)}
-                          required
-                          autoComplete="email"
-                        />
-                      </div>
+                {registerRole === 'siswa' ? (
+                  <form className="auth-form" onSubmit={handleStudentRegisterSubmit}>
+                    <div className="auth-field">
+                      <label htmlFor="std-name">Nama Lengkap</label>
+                      <input id="std-name" type="text" placeholder="Contoh: Ahmad Fauzan" value={studentName} onChange={(event) => setStudentName(event.target.value)} required />
                     </div>
-
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="std-username" className="auth-input-label">Username</label>
-                        <input
-                          id="std-username"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="ahmad_fauzan"
-                          value={studentUsername}
-                          onChange={(e) => setStudentUsername(e.target.value)}
-                          required
-                          autoComplete="username"
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="std-class" className="auth-input-label">Kelas</label>
-                        <select
-                          id="std-class"
-                          className="auth-input-field auth-select"
-                          value={studentClass}
-                          onChange={(e) => setStudentClass(e.target.value)}
-                        >
-                          <option value="XI MIPA 1">XI MIPA 1</option>
-                          <option value="XI MIPA 2">XI MIPA 2</option>
-                          <option value="XI MIPA 3">XI MIPA 3</option>
-                          <option value="XI MIPA 4">XI MIPA 4</option>
-                          <option value="XI F-1">XI Fase F-1 (Kurikulum Merdeka)</option>
-                          <option value="XI F-2">XI Fase F-2 (Kurikulum Merdeka)</option>
-                        </select>
-                      </div>
+                    <div className="auth-field">
+                      <label htmlFor="std-email">Email</label>
+                      <input id="std-email" type="email" placeholder="siswa@sekolah.sch.id" value={studentEmail} onChange={(event) => setStudentEmail(event.target.value)} autoComplete="email" required />
                     </div>
-
-                    <div className="auth-input-group">
-                      <label htmlFor="std-school" className="auth-input-label">Asal Sekolah</label>
-                      <input
-                        id="std-school"
-                        type="text"
-                        className="auth-input-field"
-                        placeholder="Contoh: SMAN 1 Kimia Digital"
-                        value={studentSchool}
-                        onChange={(e) => setStudentSchool(e.target.value)}
-                        required
-                      />
+                    <div className="auth-field">
+                      <label htmlFor="std-username">Username</label>
+                      <input id="std-username" type="text" placeholder="ahmad_fauzan" value={studentUsername} onChange={(event) => setStudentUsername(event.target.value)} autoComplete="username" required />
                     </div>
-
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="std-pwd" className="auth-input-label">Kata Sandi</label>
-                        <input
-                          id="std-pwd"
-                          type="password"
-                          className="auth-input-field"
-                          placeholder="Minimal 6 karakter"
-                          value={studentPassword}
-                          onChange={(e) => setStudentPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="std-confirm-pwd" className="auth-input-label">Konfirmasi Kata Sandi</label>
-                        <input
-                          id="std-confirm-pwd"
-                          type="password"
-                          className="auth-input-field"
-                          placeholder="Ketik ulang kata sandi"
-                          value={studentConfirmPassword}
-                          onChange={(e) => setStudentConfirmPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                      </div>
+                    <div className="auth-field">
+                      <label htmlFor="std-class">Kelas</label>
+                      <select id="std-class" value={studentClass} onChange={(event) => setStudentClass(event.target.value)}>
+                        <option value="XI MIPA 1">XI MIPA 1</option>
+                        <option value="XI MIPA 2">XI MIPA 2</option>
+                        <option value="XI MIPA 3">XI MIPA 3</option>
+                        <option value="XI MIPA 4">XI MIPA 4</option>
+                        <option value="XI F-1">XI Fase F-1 (Kurikulum Merdeka)</option>
+                        <option value="XI F-2">XI Fase F-2 (Kurikulum Merdeka)</option>
+                      </select>
                     </div>
-
-                    <button type="submit" id="btn-submit-register-student" className="auth-btn-primary" style={{ marginTop: '14px' }}>
-                      <span>Daftar Akun Siswa & Mulai Belajar</span>
-                      <span aria-hidden="true">→</span>
-                    </button>
+                    <div className="auth-field">
+                      <label htmlFor="std-school">Asal Sekolah</label>
+                      <input id="std-school" type="text" placeholder="Contoh: SMAN 1 Kimia Digital" value={studentSchool} onChange={(event) => setStudentSchool(event.target.value)} required />
+                    </div>
+                    <div className="auth-field">
+                      <label htmlFor="std-pwd">Password</label>
+                      <input id="std-pwd" type="password" placeholder="Minimal 6 karakter" value={studentPassword} onChange={(event) => setStudentPassword(event.target.value)} autoComplete="new-password" required />
+                    </div>
+                    <div className="auth-field">
+                      <label htmlFor="std-confirm-pwd">Konfirmasi Password</label>
+                      <input id="std-confirm-pwd" type="password" placeholder="Ketik ulang kata sandi" value={studentConfirmPassword} onChange={(event) => setStudentConfirmPassword(event.target.value)} autoComplete="new-password" required />
+                    </div>
+                    <button type="submit" className="auth-primary-btn">Daftar sebagai Siswa</button>
                   </form>
                 ) : (
-                  /* FORM REGISTRASI GURU */
-                  <form onSubmit={handleTeacherRegisterSubmit} noValidate>
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-name" className="auth-input-label">Nama Lengkap & Gelar</label>
-                        <input
-                          id="tch-name"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="Contoh: Dra. Nurul Hidayati, M.Pd."
-                          value={teacherName}
-                          onChange={(e) => setTeacherName(e.target.value)}
-                          required
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-email" className="auth-input-label">Alamat Email Guru</label>
-                        <input
-                          id="tch-email"
-                          type="email"
-                          className="auth-input-field"
-                          placeholder="guru@sekolah.sch.id"
-                          value={teacherEmail}
-                          onChange={(e) => setTeacherEmail(e.target.value)}
-                          required
-                          autoComplete="email"
-                        />
-                      </div>
+                  <form className="auth-form" onSubmit={handleTeacherRegisterSubmit}>
+                    <div className="auth-field">
+                      <label htmlFor="tch-name">Nama Lengkap & Gelar</label>
+                      <input id="tch-name" type="text" placeholder="Contoh: Dra. Nurul Hidayati, M.Pd." value={teacherName} onChange={(event) => setTeacherName(event.target.value)} required />
                     </div>
-
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-username" className="auth-input-label">Username</label>
-                        <input
-                          id="tch-username"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="nurul_hidayati"
-                          value={teacherUsername}
-                          onChange={(e) => setTeacherUsername(e.target.value)}
-                          required
-                          autoComplete="username"
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-school" className="auth-input-label">Asal Sekolah</label>
-                        <input
-                          id="tch-school"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="Contoh: SMAN 1 Kimia Digital"
-                          value={teacherSchool}
-                          onChange={(e) => setTeacherSchool(e.target.value)}
-                          required
-                        />
-                      </div>
+                    <div className="auth-field">
+                      <label htmlFor="tch-email">Email</label>
+                      <input id="tch-email" type="email" placeholder="guru@sekolah.sch.id" value={teacherEmail} onChange={(event) => setTeacherEmail(event.target.value)} autoComplete="email" required />
                     </div>
-
-                    <div className="auth-input-group">
-                      <label htmlFor="tch-code" className="auth-input-label">
-                        Kode Validasi Akun Guru
-                        <span className="code-hint"> (Kode standar: <code>{STANDARD_TEACHER_CODE}</code>)</span>
-                      </label>
-                      <input
-                        id="tch-code"
-                        type="text"
-                        className="auth-input-field auth-code-input"
-                        placeholder="Masukkan kode verifikasi pendidik"
-                        value={teacherCode}
-                        onChange={(e) => setTeacherCode(e.target.value)}
-                        required
-                      />
+                    <div className="auth-field">
+                      <label htmlFor="tch-username">Username</label>
+                      <input id="tch-username" type="text" placeholder="nurul_hidayati" value={teacherUsername} onChange={(event) => setTeacherUsername(event.target.value)} autoComplete="username" required />
                     </div>
-
-                    <div className="auth-form-grid">
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-pwd" className="auth-input-label">Kata Sandi</label>
-                        <input
-                          id="tch-pwd"
-                          type="password"
-                          className="auth-input-field"
-                          placeholder="Minimal 6 karakter"
-                          value={teacherPassword}
-                          onChange={(e) => setTeacherPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                      </div>
-
-                      <div className="auth-input-group">
-                        <label htmlFor="tch-confirm-pwd" className="auth-input-label">Konfirmasi Kata Sandi</label>
-                        <input
-                          id="tch-confirm-pwd"
-                          type="password"
-                          className="auth-input-field"
-                          placeholder="Ketik ulang kata sandi"
-                          value={teacherConfirmPassword}
-                          onChange={(e) => setTeacherConfirmPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                      </div>
+                    <div className="auth-field">
+                      <label htmlFor="tch-school">Asal Sekolah</label>
+                      <input id="tch-school" type="text" placeholder="Contoh: SMAN 1 Kimia Digital" value={teacherSchool} onChange={(event) => setTeacherSchool(event.target.value)} required />
                     </div>
-
-                    <button type="submit" id="btn-submit-register-teacher" className="auth-btn-primary" style={{ marginTop: '14px' }}>
-                      <span>Daftar Akun Guru & Masuk Dashboard</span>
-                      <span aria-hidden="true">→</span>
-                    </button>
+                    <div className="auth-field">
+                      <label htmlFor="tch-code">Kode Verifikasi Guru</label>
+                      <input id="tch-code" type="text" placeholder={STANDARD_TEACHER_CODE} value={teacherCode} onChange={(event) => setTeacherCode(event.target.value)} required />
+                    </div>
+                    <div className="auth-field">
+                      <label htmlFor="tch-pwd">Password</label>
+                      <input id="tch-pwd" type="password" placeholder="Minimal 6 karakter" value={teacherPassword} onChange={(event) => setTeacherPassword(event.target.value)} autoComplete="new-password" required />
+                    </div>
+                    <div className="auth-field">
+                      <label htmlFor="tch-confirm-pwd">Konfirmasi Password</label>
+                      <input id="tch-confirm-pwd" type="password" placeholder="Ketik ulang kata sandi" value={teacherConfirmPassword} onChange={(event) => setTeacherConfirmPassword(event.target.value)} autoComplete="new-password" required />
+                    </div>
+                    <button type="submit" className="auth-primary-btn">Daftar sebagai Guru</button>
                   </form>
                 )}
 
-                <div className="auth-footer-prompt">
-                  <span>Sudah memiliki akun terdaftar?</span>
-                  <button
-                    type="button"
-                    className="auth-switch-link"
-                    onClick={() => switchMode('login')}
-                  >
-                    Masuk ke Akun
+                <p className="auth-bottom-prompt">
+                  Sudah memiliki akun?{' '}
+                  <button type="button" className="auth-text-link auth-inline-link" onClick={() => switchMode('login')}>
+                    Masuk
                   </button>
-                </div>
+                </p>
               </div>
             )}
 
-            {/* =============================================================
-                3. HALAMAN LUPA KATA SANDI (FORGOT PASSWORD) - 2 STEP
-                ============================================================= */}
             {mode === 'forgot' && (
-              <div className="auth-form">
-                <div className="form-header-row">
-                  <h1 className="auth-form-title">Pemulihan Kata Sandi</h1>
-                  <span className="role-badge-pill">Step {forgotStep} dari 2</span>
-                </div>
+              <div className="auth-panel">
+                <h2 className="auth-view-title">Lupa Sandi?</h2>
+                <p className="auth-view-subtitle">
+                  {forgotStep === 1
+                    ? 'Masukkan email terdaftar untuk menyiapkan kata sandi baru.'
+                    : `Email ${forgotEmail} telah diverifikasi. Buat kata sandi baru Anda.`}
+                </p>
 
                 {forgotStep === 1 ? (
-                  // Step 1: Input Email Terdaftar
-                  <form onSubmit={handleForgotRequestSubmit} noValidate>
-                    <p className="auth-form-subtitle">
-                      Masukkan alamat email terdaftar akun KimiLab Anda. Sistem akan memvalidasi akun dan membuka formulir pembuatan kata sandi baru.
-                    </p>
-
-                    <div className="auth-input-group">
-                      <label htmlFor="forgot-email-input" className="auth-input-label">
-                        Email atau Username Terdaftar
-                      </label>
-                      <div className="auth-input-box">
-                        <span className="auth-input-icon" aria-hidden="true">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                            <polyline points="22,6 12,13 2,6"></polyline>
-                          </svg>
-                        </span>
-                        <input
-                          id="forgot-email-input"
-                          type="text"
-                          className="auth-input-field"
-                          placeholder="Masukkan email (mis: siswa@kimilab.id)"
-                          value={forgotEmail}
-                          onChange={(e) => setForgotEmail(e.target.value)}
-                          required
-                        />
-                      </div>
+                  <form className="auth-form" onSubmit={handleForgotRequestSubmit}>
+                    <div className="auth-field">
+                      <label htmlFor="forgot-email">Email</label>
+                      <input id="forgot-email" type="email" placeholder="nama@sekolah.sch.id" value={forgotEmail} onChange={(event) => setForgotEmail(event.target.value)} autoComplete="email" required />
                     </div>
-
-                    <button type="submit" id="btn-request-reset" className="auth-btn-primary" style={{ marginTop: '16px' }}>
-                      <span>Kirim Instruksi & Buka Reset Sandi</span>
-                      <span aria-hidden="true">→</span>
-                    </button>
+                    <button type="submit" className="auth-primary-btn">Kirim Link Reset Sandi</button>
                   </form>
                 ) : (
-                  // Step 2: Buat Kata Sandi Baru
-                  <form onSubmit={handleForgotSetNewSubmit} noValidate>
-                    <p className="auth-form-subtitle">
-                      Akun terverifikasi untuk <strong>{forgotEmail}</strong>. Silakan buat dan konfirmasi kata sandi baru Anda.
-                    </p>
-
-                    <div className="auth-input-group">
-                      <label htmlFor="new-pwd-input" className="auth-input-label">
-                        Kata Sandi Baru
-                      </label>
-                      <div className="auth-input-box">
-                        <input
-                          id="new-pwd-input"
-                          type={showForgotPwd ? 'text' : 'password'}
-                          className="auth-input-field"
-                          placeholder="Minimal 6 karakter baru"
-                          value={forgotNewPassword}
-                          onChange={(e) => setForgotNewPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                        <button
-                          type="button"
-                          className="auth-toggle-pwd-btn"
-                          onClick={() => setShowForgotPwd(!showForgotPwd)}
-                        >
-                          {showForgotPwd ? 'Tutup' : 'Lihat'}
+                  <form className="auth-form" onSubmit={handleForgotSetNewSubmit}>
+                    <div className="auth-field">
+                      <label htmlFor="forgot-new-pwd">Kata Sandi Baru</label>
+                      <div className="auth-input-wrap">
+                        <input id="forgot-new-pwd" type={showForgotPwd ? 'text' : 'password'} placeholder="Minimal 6 karakter" value={forgotNewPassword} onChange={(event) => setForgotNewPassword(event.target.value)} autoComplete="new-password" required />
+                        <button type="button" className="auth-eye" onClick={() => setShowForgotPwd((visible) => !visible)} aria-label={showForgotPwd ? 'Sembunyikan kata sandi baru' : 'Tampilkan kata sandi baru'} aria-pressed={showForgotPwd}>
+                          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
                         </button>
                       </div>
                     </div>
-
-                    <div className="auth-input-group">
-                      <label htmlFor="confirm-new-pwd-input" className="auth-input-label">
-                        Konfirmasi Kata Sandi Baru
-                      </label>
-                      <div className="auth-input-box">
-                        <input
-                          id="confirm-new-pwd-input"
-                          type={showForgotPwd ? 'text' : 'password'}
-                          className="auth-input-field"
-                          placeholder="Ketik ulang kata sandi baru"
-                          value={forgotConfirmPassword}
-                          onChange={(e) => setForgotConfirmPassword(e.target.value)}
-                          required
-                          autoComplete="new-password"
-                        />
-                      </div>
+                    <div className="auth-field">
+                      <label htmlFor="forgot-confirm-pwd">Konfirmasi Kata Sandi Baru</label>
+                      <input id="forgot-confirm-pwd" type={showForgotPwd ? 'text' : 'password'} placeholder="Ketik ulang kata sandi baru" value={forgotConfirmPassword} onChange={(event) => setForgotConfirmPassword(event.target.value)} autoComplete="new-password" required />
                     </div>
-
-                    <button type="submit" id="btn-save-new-pwd" className="auth-btn-primary" style={{ marginTop: '16px' }}>
-                      <span>Simpan Kata Sandi Baru</span>
-                      <span aria-hidden="true">✓</span>
-                    </button>
+                    <button type="submit" className="auth-primary-btn">Simpan Kata Sandi Baru</button>
                   </form>
                 )}
 
-                <div className="auth-footer-prompt">
-                  <span>Sudah mengingat kata sandi Anda?</span>
-                  <button
-                    type="button"
-                    className="auth-switch-link"
-                    onClick={() => {
-                      switchMode('login');
-                      setForgotStep(1);
-                    }}
-                  >
-                    Kembali ke Halaman Masuk
-                  </button>
-                </div>
+                <button type="button" className="auth-text-link auth-back-link" onClick={() => switchMode('login')}>
+                  Kembali ke halaman Masuk
+                </button>
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </main>
 
-      {/* Footer Info KimiLab */}
-      <footer className="auth-footer-note">
-        <span>KimiLab SMA • Standar IUPAC & Pendekatan Pedagogi Sains 5E • 100% Client-Side Local-First</span>
-      </footer>
+        <footer className="auth-footer">© 2026 KimiLab - Pembelajaran Kimia Interaktif</footer>
+
+        {onBackToHome && (
+          <button type="button" className="auth-home-link" onClick={onBackToHome}>
+            ← Kembali ke Beranda
+          </button>
+        )}
+      </div>
     </div>
   );
 }
