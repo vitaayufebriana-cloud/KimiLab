@@ -7,7 +7,8 @@
  * - Registrasi akun siswa lengkap (nama, email, username, password, kelas, sekolah).
  * - Registrasi akun guru lengkap (nama, email, username, password, sekolah, kode verifikasi pendidik).
  * - Fitur lupa kata sandi bertahap dengan instruksi pemulihan.
- * - Penyediaan daftar siswa terdaftar & kohort kelas untuk Dashboard Guru.
+ * - Penyediaan daftar siswa nyata yang registrasi di browser untuk Dashboard Guru
+ *   (tanpa data rekaan; akun bawaan demo dikeluarkan).
  */
 
 const AUTH_USER_KEY = 'kimilab_auth_user';
@@ -46,114 +47,6 @@ const DEFAULT_DEMO_USERS = [
     kodeVerifikasi: 'GURU-KIMILAB-2026',
     nip: '197804152005012004',
     createdAt: '2026-01-15T07:00:00.000Z',
-  },
-];
-
-// Kohort Data Siswa Kelas XI untuk Dashboard Guru
-const MOCK_CLASS_STUDENTS = [
-  {
-    id: 'std-1',
-    name: 'Ahmad Fauzan',
-    username: 'siswa',
-    email: 'siswa@kimilab.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: false, evaluate: false },
-    progressPercent: 60,
-    quizScore: null,
-    status: 'Sedang Belajar (Elaborate)',
-    lastActive: 'Hari ini, 09:42',
-  },
-  {
-    id: 'std-2',
-    name: 'Ayu Febriana',
-    username: 'ayufebriana',
-    email: 'ayu@kimilab.id',
-    kelas: 'XI MIPA 1',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: true, evaluate: true },
-    progressPercent: 100,
-    quizScore: 90,
-    status: 'Tuntas (Sangat Memuaskan)',
-    lastActive: 'Kemarin, 14:15',
-  },
-  {
-    id: 'std-3',
-    name: 'Bima Satria Wicaksana',
-    username: 'bimasatria',
-    email: 'bima@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: true, evaluate: true },
-    progressPercent: 100,
-    quizScore: 100,
-    status: 'Tuntas (Sempurna)',
-    lastActive: '2 hari lalu',
-  },
-  {
-    id: 'std-4',
-    name: 'Citra Dewi Anggraini',
-    username: 'citradewi',
-    email: 'citra@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: false, elaborate: false, evaluate: false },
-    progressPercent: 40,
-    quizScore: null,
-    status: 'Sedang Belajar (Explain)',
-    lastActive: 'Hari ini, 08:20',
-  },
-  {
-    id: 'std-5',
-    name: 'Daffa Rizky Pratama',
-    username: 'daffapratama',
-    email: 'daffa@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: true, evaluate: true },
-    progressPercent: 100,
-    quizScore: 80,
-    status: 'Tuntas (Lulus)',
-    lastActive: 'Kemarin, 11:30',
-  },
-  {
-    id: 'std-6',
-    name: 'Eka Nur Aini',
-    username: 'ekanur',
-    email: 'eka@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: false, explain: false, elaborate: false, evaluate: false },
-    progressPercent: 20,
-    quizScore: null,
-    status: 'Mulai (Explore)',
-    lastActive: '3 hari lalu',
-  },
-  {
-    id: 'std-7',
-    name: 'Farhan Maulana',
-    username: 'farhanm',
-    email: 'farhan@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: true, evaluate: true },
-    progressPercent: 100,
-    quizScore: 60,
-    status: 'Remedial Kuis',
-    lastActive: 'Kemarin, 16:45',
-  },
-  {
-    id: 'std-8',
-    name: 'Gita Permatasari',
-    username: 'gitap',
-    email: 'gita@siswa.sch.id',
-    kelas: 'XI MIPA 2',
-    sekolah: 'SMAN 1 Kimia Digital',
-    stages: { engage: true, explore: true, explain: true, elaborate: false, evaluate: false },
-    progressPercent: 60,
-    quizScore: null,
-    status: 'Sedang Belajar (Elaborate)',
-    lastActive: 'Hari ini, 10:12',
   },
 ];
 
@@ -530,7 +423,7 @@ export const logoutUser = () => {
  * Role mengikuti pilihan tab (Siswa/Guru) di panel login.
  * - Jika email sudah terdaftar: pakai akun tersebut (role harus cocok dengan tab aktif).
  * - Jika belum: buat profil lokal baru bertanda provider 'google'
- *   (tanpa password — hanya bisa masuk lewat Google).
+ *   (tanpa password â€” hanya bisa masuk lewat Google).
  * @param {{ name?: string, email?: string, role?: 'siswa' | 'guru' }} profile
  * @returns {{ success: boolean, user?: object, message: string }}
  */
@@ -608,27 +501,42 @@ export const loginWithGoogleProfile = ({ name, email, role = 'siswa' }) => {
 };
 
 /**
- * Mengambil daftar data siswa untuk ditampilkan di Dashboard Guru
- * Menggabungkan kohort kelas bawaan dan siswa baru yang mendaftar secara lokal.
+ * Mengambil daftar siswa nyata untuk ditampilkan di Dashboard Guru.
+ * Hanya menampilkan akun siswa yang registrasi manual di browser ini —
+ * akun bawaan demo (siswa@kimilab.id, ayu@kimilab.id) dikeluarkan agar
+ * panel guru tidak menampilkan data rekaan.
+ * Data progres per siswa tidak tersedia lintas akun di satu browser
+ * (local-first), sehingga progres/nilai ditampilkan kosong ('–').
  * @returns {Array<object>}
  */
 export const getTeacherStudentList = () => {
   const users = getRegisteredUsers();
-  const registeredStudents = users
-    .filter((u) => u.role === 'siswa' && !MOCK_CLASS_STUDENTS.some((m) => m.email === u.email))
-    .map((u, idx) => ({
-      id: `new-std-${idx + 1}`,
-      name: u.name,
-      username: u.username,
-      email: u.email,
-      kelas: u.kelas || 'XI MIPA',
-      sekolah: u.sekolah || 'SMA',
-      stages: { engage: true, explore: false, explain: false, elaborate: false, evaluate: false },
-      progressPercent: 20,
-      quizScore: null,
-      status: 'Siswa Baru (Engage Selesai)',
-      lastActive: 'Baru saja',
-    }));
+  const demoStudentEmails = new Set(
+    DEFAULT_DEMO_USERS
+      .filter((u) => u.role === 'siswa')
+      .map((u) => (u.email || '').toLowerCase())
+  );
 
-  return [...MOCK_CLASS_STUDENTS, ...registeredStudents];
+  return users
+    .filter((u) => u.role === 'siswa' && !demoStudentEmails.has((u.email || '').toLowerCase()))
+    .map((u) => {
+      const createdAt = u.createdAt ? new Date(u.createdAt) : null;
+      const registeredLabel =
+        createdAt && !Number.isNaN(createdAt.getTime())
+          ? `Terdaftar ${createdAt.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`
+          : '–';
+      return {
+        id: `reg-${u.username || u.email}`,
+        name: u.name,
+        username: u.username,
+        email: u.email,
+        kelas: u.kelas || '–',
+        sekolah: u.sekolah || '–',
+        stages: { engage: false, explore: false, explain: false, elaborate: false, evaluate: false },
+        progressPercent: null,
+        quizScore: null,
+        status: 'Terdaftar — belum ada data belajar',
+        lastActive: registeredLabel,
+      };
+    });
 };
