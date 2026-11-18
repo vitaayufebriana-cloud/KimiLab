@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { engageData } from '../../../data/learningCycleData';
+import ResetStageButton from './ResetStageButton';
 
 /**
  * Tahap 1: ENGAGE (Menggugah Minat & Pengetahuan Awal)
@@ -14,12 +15,14 @@ import { engageData } from '../../../data/learningCycleData';
  *   savedData?: object,
  *   onCompleteStage: (stageId: string, payload: object) => void,
  *   onNext: () => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function EngageStage({
   savedData = {},
   onCompleteStage,
   onNext,
+  onNotify = () => {},
 }) {
   const [predictions, setPredictions] = useState(savedData.predictions || {});
   const [submitted, setSubmitted] = useState(Boolean(savedData.completed));
@@ -135,6 +138,17 @@ export default function EngageStage({
             <span>Simpan Prediksi & Lanjut ke Explore (Lab Virtual)</span>
             <span aria-hidden="true">&rarr;</span>
           </button>
+        </div>
+
+        <div className="stage-reset-row">
+          <ResetStageButton
+            stageId="engage"
+            onReset={() => {
+              setPredictions({});
+              setSubmitted(false);
+            }}
+            onNotify={onNotify}
+          />
         </div>
       </section>
     </div>

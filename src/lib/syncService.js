@@ -4,7 +4,7 @@
  * Setiap submit kuis memasukkan satu "attempt" ke antrean lokal
  * (localStorage key `kimilab_pending_attempts`). Antrean dikirim ke
  * Firestore oleh `syncPending()` — bisa dipicu manual lewat tombol
- * "Coba Kirim Lagi" di Navbar, atau otomatis setelah login Google.
+ * "Coba Kirim Lagi" di Sidebar, atau otomatis setelah login Google.
  *
  * Modul ini sengaja TIDAK mengimpor Firebase secara statis agar bundle
  * awal tetap ringan; Firebase dimuat dinamis hanya saat sync berjalan.

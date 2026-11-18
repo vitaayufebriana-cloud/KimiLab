@@ -158,6 +158,7 @@ export default function LearningCycle5E({
             savedData={progress5E.engage}
             onCompleteStage={handleCompleteStage}
             onNext={handleNextStage}
+            onNotify={onNotify}
           />
         )}
 
@@ -166,6 +167,7 @@ export default function LearningCycle5E({
             savedData={progress5E.explore}
             onCompleteStage={handleCompleteStage}
             onNext={handleNextStage}
+            onNotify={onNotify}
           />
         )}
 
@@ -174,6 +176,7 @@ export default function LearningCycle5E({
             savedData={progress5E.explain}
             onCompleteStage={handleCompleteStage}
             onNext={handleNextStage}
+            onNotify={onNotify}
           />
         )}
 
@@ -182,6 +185,7 @@ export default function LearningCycle5E({
             savedData={progress5E.elaborate}
             onCompleteStage={handleCompleteStage}
             onNext={handleNextStage}
+            onNotify={onNotify}
           />
         )}
 
@@ -189,6 +193,7 @@ export default function LearningCycle5E({
           <EvaluateStage
             onCompleteStage={handleCompleteStage}
             onBackToDashboard={onBackToDashboard}
+            onNotify={onNotify}
           />
         )}
       </main>

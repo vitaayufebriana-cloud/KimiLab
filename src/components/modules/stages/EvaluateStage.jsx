@@ -1,4 +1,5 @@
 import QuizSection from '../../quiz/QuizSection';
+import ResetStageButton from './ResetStageButton';
 
 /**
  * Tahap 5: EVALUATE (Evaluasi Kognitif Komprehensif Asam-Basa C4–C5)
@@ -10,11 +11,13 @@ import QuizSection from '../../quiz/QuizSection';
  * @param {{
  *   onCompleteStage: (stageId: string, payload: object) => void,
  *   onBackToDashboard: () => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function EvaluateStage({
   onCompleteStage,
   onBackToDashboard,
+  onNotify = () => {},
 }) {
   const handleQuizProgress = (_moduleId, percent) => {
     if (percent >= 100) {
@@ -54,6 +57,10 @@ export default function EvaluateStage({
         >
           <span>🏁 Kembali ke Dashboard & Lihat Hasil Akhir Pembelajaran</span>
         </button>
+      </div>
+
+      <div className="stage-reset-row">
+        <ResetStageButton stageId="evaluate" onNotify={onNotify} />
       </div>
     </div>
   );

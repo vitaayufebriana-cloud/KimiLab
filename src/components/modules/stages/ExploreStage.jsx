@@ -10,6 +10,7 @@ import {
   deleteExploreObservation,
   clearExploreObservations,
 } from '../../../utils/learningHelper';
+import ResetStageButton from './ResetStageButton';
 
 /**
  * Tahap 2: EXPLORE (Laboratorium Virtual Kimia Asam-Basa)
@@ -26,12 +27,14 @@ import {
  *   savedData?: object,
  *   onCompleteStage: (stageId: string, payload: object) => void,
  *   onNext: () => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function ExploreStage({
   savedData = {},
   onCompleteStage,
   onNext,
+  onNotify = () => {},
 }) {
   const [selectedSolutionId, setSelectedSolutionId] = useState('hcl');
   const [concentration, setConcentration] = useState(0.1);
@@ -401,6 +404,17 @@ export default function ExploreStage({
             <span>Simpan Analisis & Lanjut ke Explain (Penjelasan Konsep)</span>
             <span aria-hidden="true">&rarr;</span>
           </button>
+        </div>
+
+        <div className="stage-reset-row">
+          <ResetStageButton
+            stageId="explore"
+            onReset={() => {
+              setAnalysisAnswers({});
+              setShowAnalysisKey(false);
+            }}
+            onNotify={onNotify}
+          />
         </div>
       </section>
     </div>
