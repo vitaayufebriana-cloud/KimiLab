@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { elaborateData } from '../../../data/learningCycleData';
+import ResetStageButton from './ResetStageButton';
 
 /**
  * Tahap 4: ELABORATE (Aplikasi Permasalahan Kontekstual & HOTS)
@@ -16,12 +17,14 @@ import { elaborateData } from '../../../data/learningCycleData';
  *   savedData?: object,
  *   onCompleteStage: (stageId: string, payload: object) => void,
  *   onNext: () => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function ElaborateStage({
   savedData = {},
   onCompleteStage,
   onNext,
+  onNotify = () => {},
 }) {
   const [answers, setAnswers] = useState(savedData.studentAnswers || {});
   const [solutionNotes, setSolutionNotes] = useState(savedData.solutionNotes || '');
@@ -178,6 +181,18 @@ export default function ElaborateStage({
             <span>Simpan Argumentasi & Masuk ke Evaluate (Kuis C4–C5)</span>
             <span aria-hidden="true">&rarr;</span>
           </button>
+        </div>
+
+        <div className="stage-reset-row">
+          <ResetStageButton
+            stageId="elaborate"
+            onReset={() => {
+              setAnswers({});
+              setSolutionNotes('');
+              setIsSaved(false);
+            }}
+            onNotify={onNotify}
+          />
         </div>
       </section>
     </div>

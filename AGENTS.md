@@ -25,11 +25,13 @@ Susunan direktori wajib mengikuti pola berikut:
 src/
 ├── assets/         # Ilustrasi, ikon, gambar kimia statis
 ├── components/     # Komponen UI modular dan reusable
-│   ├── Navbar.jsx       # Identitas media, navigasi, dan indikator progres
+│   ├── Sidebar.jsx      # Sidebar navigasi utama (expand/collapse), status akun, sinkronisasi kuis
+│   ├── PanelGuruModal.jsx  # Modal kode akses Panel Guru
 │   ├── HeroSection.jsx  # Hero judul utama dan CTA Mulai Belajar
 │   ├── TopicCards.jsx   # Kartu fokus materi kimia (Larutan Asam-Basa)
 │   ├── common/          # Tombol, Card, Modal, Badge, ProgressBar
 │   ├── modules/         # Tampilan materi modul & pembaca konten
+│   │   └── stages/      # Tahap-tahap Learning Cycle 5E (+ ResetStageButton)
 │   └── quiz/            # Komponen kuis interaktif & umpan balik
 ├── data/           # Konten statis pembelajaran
 │   ├── modulesData.js   # Modul utama kimia

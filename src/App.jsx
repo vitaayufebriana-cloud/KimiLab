@@ -1,24 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import Navbar from './components/Navbar';
-// HeroSection dinonaktifkan sementara (lihat blok komentar JSX) — aktifkan kembali import jika dipakai
-import QuizSection from './components/quiz/QuizSection';
+import Sidebar from './components/Sidebar';
+import PanelGuruModal from './components/PanelGuruModal';
 import AuthPages from './components/auth/AuthPages';
-import StudentDashboard from './components/dashboard/StudentDashboard';
 import TeacherDashboard from './components/dashboard/TeacherDashboard';
 import LearningCycle5E from './components/modules/LearningCycle5E';
-import {
-  getStoredProgress,
-  saveModuleProgress,
-  clearStoredProgress,
-} from './utils/storageHelper';
+import IntroductionPage from './components/intro/IntroductionPage';
+import DeveloperFooter from './components/intro/DeveloperFooter';
 import {
   getCurrentAuthUser,
   logoutUser,
 } from './utils/authHelper';
-import {
-  get5EProgress,
-  reset5EAllProgress,
-} from './utils/learningHelper';
 import './App.css';
 
 const DASHBOARD_HASHES = {
@@ -37,8 +28,6 @@ const replaceHash = (hash) => {
 };
 
 export default function App() {
-  const [progress, setProgress] = useState(getStoredProgress());
-  const [progress5E, setProgress5E] = useState(() => get5EProgress());
   const [toastMessage, setToastMessage] = useState('');
   const [authUser, setAuthUser] = useState(() => getCurrentAuthUser());
 
@@ -73,6 +62,17 @@ export default function App() {
   // Tahap awal saat membuka Modul 5E ('engage' | 'explore' | 'explain' | 'elaborate' | 'evaluate')
   const [target5EStage, setTarget5EStage] = useState('engage');
 
+  // Akses Panel Guru: diingat selama sesi tab browser (sessionStorage)
+  const [guruAccess, setGuruAccess] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return window.sessionStorage.getItem('kimilab_guru_panel_unlocked') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [panelGuruModalOpen, setPanelGuruModalOpen] = useState(false);
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -80,17 +80,7 @@ export default function App() {
     }, 3500);
   };
 
-  const reloadProgress = useCallback(() => {
-    setProgress(getStoredProgress());
-    setProgress5E(get5EProgress());
-  }, []);
-
   useEffect(() => {
-    const handleProgressEvent = () => reloadProgress();
-    window.addEventListener('kimilab_progress_updated', handleProgressEvent);
-    window.addEventListener('kimilab_5e_updated', handleProgressEvent);
-    window.addEventListener('storage', handleProgressEvent);
-
     const handleAuthEvent = (e) => {
       const user = e.detail !== undefined ? e.detail : getCurrentAuthUser();
       setAuthUser(user);
@@ -134,14 +124,22 @@ export default function App() {
     window.addEventListener('hashchange', handleHashChange);
 
     return () => {
-      window.removeEventListener('kimilab_progress_updated', handleProgressEvent);
-      window.removeEventListener('kimilab_5e_updated', handleProgressEvent);
-      window.removeEventListener('storage', handleProgressEvent);
       window.removeEventListener('kimilab_auth_changed', handleAuthEvent);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [reloadProgress]);
+  }, []);
 
+  // Membuka Modal Kode Panel Guru (atau langsung ke panel bila sudah unlock)
+  const handleOpenPanelGuru = useCallback(() => {
+    if (guruAccess) {
+      setCurrentView('panel-guru');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      setPanelGuruModalOpen(true);
+    }
+  }, [guruAccess]);
+
+  // Sinkronkan hash dashboard (#/dashboard/siswa|guru) sesuai role aktif
   useEffect(() => {
     if (!authUser) return;
     const hash = window.location.hash.toLowerCase();
@@ -150,23 +148,19 @@ export default function App() {
     }
   }, [authUser]);
 
-  const handleUpdateProgress = (moduleId, percent) => {
-    const updated = saveModuleProgress(moduleId, percent);
-    setProgress(updated);
-    showToast(
-      percent >= 100
-        ? `🎉 Selamat! Modul ${moduleId} tuntas 100%!`
-        : `💾 Progres modul ${moduleId} tersimpan: ${percent}%`
-    );
-  };
-
-  const handleResetProgress = () => {
-    const reset = clearStoredProgress();
-    reset5EAllProgress();
-    setProgress(reset);
-    setProgress5E(get5EProgress());
-    showToast('🔄 Seluruh data progres pembelajaran 5E di localStorage telah dibersihkan.');
-  };
+  // Kode Panel Guru benar: unlock untuk sesi tab ini & buka panel
+  const handlePanelGuruSuccess = useCallback(() => {
+    try {
+      window.sessionStorage.setItem('kimilab_guru_panel_unlocked', '1');
+    } catch {
+      /* abaikan — akses tetap terbuka untuk sesi state ini */
+    }
+    setGuruAccess(true);
+    setPanelGuruModalOpen(false);
+    setCurrentView('panel-guru');
+    showToast('✅ Akses Panel Guru terbuka.');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   // Navigasi ke Halaman Autentikasi
   const handleOpenAuth = (mode = 'login') => {
@@ -246,11 +240,31 @@ export default function App() {
   // ===========================================================================
   if (currentView === 'module-5e') {
     return (
-      <div className="app-layout">
-        <LearningCycle5E
-          initialStage={target5EStage}
-          onBackToDashboard={handleBackToHome}
+      <div className="app-layout app-layout-with-sidebar">
+        <Sidebar
+          authUser={authUser}
+          onOpenAuth={handleOpenAuth}
+          onLogout={handleLogout}
+          currentView="module-5e"
+          onNavigateHome={handleBackToHome}
+          onOpen5EStage={handleOpen5EStage}
+          onOpenPanelGuru={handleOpenPanelGuru}
           onNotify={showToast}
+        />
+
+        <div className="app-content">
+          <LearningCycle5E
+            key={target5EStage}
+            initialStage={target5EStage}
+            onBackToDashboard={handleBackToHome}
+            onNotify={showToast}
+          />
+        </div>
+
+        <PanelGuruModal
+          isOpen={panelGuruModalOpen}
+          onClose={() => setPanelGuruModalOpen(false)}
+          onSuccess={handlePanelGuruSuccess}
         />
 
         {toastMessage && (
@@ -263,262 +277,94 @@ export default function App() {
   }
 
   // ===========================================================================
-  // 3. TAMPILAN BERANDA (DASHBOARD SISWA / DASHBOARD GURU SETELAH LOGIN)
+  // 3. PANEL GURU (dilindungi kode akses, dibuka lewat sidebar)
   // ===========================================================================
-  return (
-    <div className="app-layout">
-      {/* 1. Navbar dengan Identitas Media, Status Akun Role, dan Progres 5E */}
-      <Navbar
-        progress={progress}
-        onResetProgress={handleResetProgress}
-        authUser={authUser}
-        onOpenAuth={handleOpenAuth}
-        onLogout={handleLogout}
-        currentView={currentView}
-        onNavigateHome={handleBackToHome}
-        onOpen5EStage={handleOpen5EStage}
-        onNotify={showToast}
-      />
+  if (currentView === 'panel-guru' && guruAccess) {
+    return (
+      <div className="app-layout app-layout-with-sidebar">
+        <Sidebar
+          authUser={authUser}
+          onOpenAuth={handleOpenAuth}
+          onLogout={handleLogout}
+          currentView="panel-guru"
+          onNavigateHome={handleBackToHome}
+          onOpen5EStage={handleOpen5EStage}
+          onOpenPanelGuru={handleOpenPanelGuru}
+          onNotify={showToast}
+        />
 
-      {/* Main Content Area */}
-      <main id="main-content">
-        {/* Sesuai Permintaan Role-Based Dashboard */}
-        {authUser?.role === 'guru' ? (
-          // DASHBOARD KHUSUS GURU
+        <div className="app-content">
+          <div className="panel-guru-topbar">
+            <button
+              type="button"
+              className="btn-back-dashboard"
+              onClick={handleBackToHome}
+              title="Kembali ke Beranda"
+            >
+              <span aria-hidden="true">&larr;</span>
+              <span>Beranda</span>
+            </button>
+            <h1 className="panel-guru-topbar-title">Panel Guru</h1>
+          </div>
+
           <TeacherDashboard
             authUser={authUser}
             onPreview5EModule={handleOpen5EStage}
           />
-        ) : (
-          // DASHBOARD KHUSUS SISWA
-          <StudentDashboard
-            authUser={authUser}
-            progress5E={progress5E}
-            onOpen5EStage={handleOpen5EStage}
-            onStartLearning={() => handleOpen5EStage('engage')}
-          />
-        )}
+        </div>
 
-        {/* Hero Section Minimalis KimiLab */}
-        {/* <HeroSection
-          onStartLearning={() => handleOpen5EStage('engage')}
-          onOpenStage={handleOpen5EStage}
-        /> */}
+        <PanelGuruModal
+          isOpen={panelGuruModalOpen}
+          onClose={() => setPanelGuruModalOpen(false)}
+          onSuccess={handlePanelGuruSuccess}
+        />
 
-        {/* Kuis Interaktif Evaluasi Asam-Basa C4–C5 (Format & Sistem 100% Dipertahankan) */}
-        <QuizSection onUpdateProgress={handleUpdateProgress} />
-
-        {/* Metode Pedagogi Sains 5E KimiLab */}
-        <section id="metode-belajar" className="method-section" aria-labelledby="method-heading">
-          <div className="method-container">
-            <div className="section-pill-tag">
-              <span>💡 Pedagogi Sains KimiLab</span>
-            </div>
-            <h2 id="method-heading" className="method-title">
-              Sintaks Learning Cycle 5E dalam Pembelajaran Asam-Basa
-            </h2>
-            <p className="method-subtitle">
-              Pembelajaran terstruktur melalui 5 tahapan aktif: mengaitkan fenomena nyata, bereksperimen di laboratorium virtual,
-              mengonstruksi konsep ilmiah, menerapkan pada kasus lingkungan, dan evaluasi penalaran kognitif C4–C5.
-            </p>
-
-            <div className="method-cards-grid">
-              <div className="method-card">
-                <div className="method-icon-box" style={{ color: '#eab308' }}>
-                  <span>💡</span>
-                </div>
-                <h3>1. Engage (Minat & Apersepsi)</h3>
-                <p>
-                  Mengaktifkan pengetahuan awal melalui fenomena lemon, cuka dapur, sabun licin,
-                  dan pertanyaan prediksi ilmiah sebelum mempelajari konsep.
-                </p>
-              </div>
-
-              <div className="method-card">
-                <div className="method-icon-box" style={{ color: '#06b6d4' }}>
-                  <span>🔬</span>
-                </div>
-                <h3>2. Explore (Laboratorium Virtual)</h3>
-                <p>
-                  Menemukan pola melalui simulasi larutan asam-basa, pengujian indikator,
-                  derajat ionisasi (α), dan uji daya hantar listrik secara mandiri.
-                </p>
-              </div>
-
-              <div className="method-card">
-                <div className="method-icon-box" style={{ color: '#3b82f6' }}>
-                  <span>📚</span>
-                </div>
-                <h3>3. Explain (Penjelasan Konsep)</h3>
-                <p>
-                  12 materi komprehensif mengintegrasikan representasi makroskopik,
-                  submikroskopik partikel, simbolik IUPAC, dan contoh soal terstruktur.
-                </p>
-              </div>
-
-              <div className="method-card">
-                <div className="method-icon-box" style={{ color: '#10b981' }}>
-                  <span>🧪</span>
-                </div>
-                <h3>4. Elaborate (Aplikasi HOTS)</h3>
-                <p>
-                  Studi kasus nyata penanganan limbah cair asam industri tahu,
-                  kalkulasi penetralan $Ca(OH)_2$, dan perancangan konsep IPAL mini.
-                </p>
-              </div>
-
-              <div className="method-card">
-                <div className="method-icon-box" style={{ color: '#a855f7' }}>
-                  <span>📝</span>
-                </div>
-                <h3>5. Evaluate (Evaluasi Kognitif)</h3>
-                <p>
-                  10 butir soal pilihan ganda analitis C4–C5 untuk mengukur daya serap
-                  siswa dengan umpan balik ilmiah dan pembahasan mendalam.
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Action Banner */}
-            <div className="overall-progress-banner">
-              <div className="banner-text">
-                <h3>Mulai Eksplorasi Sintaks 5E Sekarang</h3>
-                <p>
-                  Masuki ruang belajar digital dan tuntaskan setiap tahap pembelajaran asam-basa secara berurutan.
-                </p>
-              </div>
-              <div className="banner-action">
-                <button
-                  type="button"
-                  className="btn-banner-action"
-                  onClick={() => handleOpen5EStage('engage')}
-                >
-                  Buka Modul 5E Lengkap &rarr;
-                </button>
-              </div>
-            </div>
+        {toastMessage && (
+          <div className="toast-notification" role="status" aria-live="polite">
+            <span>{toastMessage}</span>
           </div>
-        </section>
+        )}
+      </div>
+    );
+  }
+
+  // ===========================================================================
+  // 4. TAMPILAN BERANDA (INTRODUCTION PAGE — tanpa materi & kuis)
+  // ===========================================================================
+  return (
+    <div className="app-layout app-layout-with-sidebar">
+      {/* 1. Sidebar: Navigasi Utama + Status Akun Role KimiLab */}
+      <Sidebar
+        authUser={authUser}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
+        currentView="home"
+        onNavigateHome={handleBackToHome}
+        onOpen5EStage={handleOpen5EStage}
+        onOpenPanelGuru={handleOpenPanelGuru}
+        onNotify={showToast}
+      />
+
+      <div className="app-content">
+      {/* Main Content Area — Introduction Page (tanpa materi & kuis) */}
+      <main id="main-content">
+        <IntroductionPage
+          authUser={authUser}
+          onStartLearning={() => handleOpen5EStage('engage')}
+          onOpenPanelGuru={handleOpenPanelGuru}
+        />
       </main>
 
-      {/* Footer Identitas Media */}
-      <footer id="tentang-media" className="site-footer">
-        <div className="footer-container">
-          <div className="footer-brand-column">
-            <div className="footer-brand">
-              <div className="brand-icon-box" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M10 2v7.31L4.2 20.2a1 1 0 0 0 .8 1.8h14a1 1 0 0 0 .8-1.8L14 9.31V2" />
-                  <path d="M8.5 2h7" />
-                  <path d="M7 16h10" />
-                </svg>
-              </div>
-              <span className="footer-brand-name">
-                Kimi<span className="brand-accent">Lab</span>
-              </span>
-            </div>
-            <p className="footer-desc">
-              Media Pembelajaran Kimia SMA Interaktif & Mandiri berbasis sintaks Learning Cycle 5E
-              (Engage, Explore, Explain, Elaborate, Evaluate). 100% Client-Side Single Page Application (SPA).
-            </p>
-            <div className="footer-legal-tag">
-              Standar Notasi: IUPAC & Kemendikbudristek RI
-            </div>
-          </div>
+      {/* Footer Identitas Pengembang */}
+      <DeveloperFooter />
+      </div>
+      {/* /.app-content */}
 
-          <div className="footer-links-column">
-            <h4>Sintaks Pembelajaran 5E</h4>
-            <ul>
-              <li>
-                <button type="button" className="footer-reset-link" onClick={() => handleOpen5EStage('engage')}>
-                  1. Engage (Fenomena & Prediksi)
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-reset-link" onClick={() => handleOpen5EStage('explore')}>
-                  2. Explore (Simulator Lab Virtual)
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-reset-link" onClick={() => handleOpen5EStage('explain')}>
-                  3. Explain (12 Konsep Kimia)
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-reset-link" onClick={() => handleOpen5EStage('elaborate')}>
-                  4. Elaborate (Kasus Limbah Tahu)
-                </button>
-              </li>
-              <li>
-                <button type="button" className="footer-reset-link" onClick={() => handleOpen5EStage('evaluate')}>
-                  5. Evaluate (Kuis C4–C5)
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          <div className="footer-links-column">
-            <h4>Autentikasi & Akun</h4>
-            <ul>
-              {authUser ? (
-                <>
-                  <li>
-                    <span style={{ fontSize: '13px', color: '#cbd5e1' }}>
-                      Akun: <strong>{authUser.name}</strong> ({authUser.role === 'guru' ? 'Guru' : authUser.kelas || 'Siswa'})
-                    </span>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="footer-reset-link"
-                      onClick={handleLogout}
-                      style={{ color: '#f87171' }}
-                    >
-                      🚪 Keluar dari Akun (Logout)
-                    </button>
-                  </li>
-                </>
-              ) : (
-                <>
-                  <li>
-                    <button
-                      type="button"
-                      className="footer-reset-link"
-                      onClick={() => handleOpenAuth('login')}
-                      style={{ color: '#38bdf8' }}
-                    >
-                      🔐 Masuk ke Akun
-                    </button>
-                  </li>
-                  <li>
-                    <button
-                      type="button"
-                      className="footer-reset-link"
-                      onClick={() => handleOpenAuth('register')}
-                      style={{ color: '#38bdf8' }}
-                    >
-                      📝 Registrasi Akun Baru
-                    </button>
-                  </li>
-                </>
-              )}
-              <li>
-                <button
-                  type="button"
-                  className="footer-reset-link"
-                  onClick={handleResetProgress}
-                >
-                  🔄 Bersihkan Progres di Browser
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom-bar">
-          <p>© 2026 KimiLab - Media Pembelajaran Kimia SMA Kelas XI. Dibangun dengan React 19 + Vite.</p>
-        </div>
-      </footer>
+      <PanelGuruModal
+        isOpen={panelGuruModalOpen}
+        onClose={() => setPanelGuruModalOpen(false)}
+        onSuccess={handlePanelGuruSuccess}
+      />
 
       {/* Toast Notification */}
       {toastMessage && (

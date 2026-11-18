@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { explainTopics } from '../../../data/learningCycleData';
+import ResetStageButton from './ResetStageButton';
 
 /**
  * Tahap 3: EXPLAIN (Penjelasan Konsep Ilmiah Komprehensif)
@@ -15,12 +16,14 @@ import { explainTopics } from '../../../data/learningCycleData';
  *   savedData?: object,
  *   onCompleteStage: (stageId: string, payload: object) => void,
  *   onNext: () => void,
+ *   onNotify?: (message: string) => void,
  * }} props
  */
 export default function ExplainStage({
   savedData = {},
   onCompleteStage,
   onNext,
+  onNotify = () => {},
 }) {
   const [activeTopicId, setActiveTopicId] = useState(savedData.activeTopic || 'konsep-dasar');
   const [completedTopicIds, setCompletedTopicIds] = useState(savedData.completedTopics || []);
@@ -250,6 +253,18 @@ export default function ExplainStage({
             )}
           </div>
         </article>
+
+        <div className="stage-reset-row">
+          <ResetStageButton
+            stageId="explain"
+            onReset={() => {
+              setActiveTopicId('konsep-dasar');
+              setCompletedTopicIds([]);
+              setCheckpointAnswers({});
+            }}
+            onNotify={onNotify}
+          />
+        </div>
       </div>
     </div>
   );
