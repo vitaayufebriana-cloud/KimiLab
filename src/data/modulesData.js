@@ -15,9 +15,9 @@ export const modulesData = [
     title: 'Stoikiometri',
     fullTitle: 'Stoikiometri & Perhitungan Reaksi Kimia',
     tagline: 'Fondasi kuantitatif kimia: dari konsep mol hingga pereaksi pembatas',
-    accentColor: '#10b981', // Emerald
-    accentLight: 'rgba(16, 185, 129, 0.12)',
-    accentBorder: 'rgba(16, 185, 129, 0.3)',
+    accentColor: 'var(--um-blue)', // UM Blue
+    accentLight: 'rgba(0, 82, 156, 0.12)',
+    accentBorder: 'rgba(0, 82, 156, 0.3)',
     icon: 'scale',
     duration: '45 Menit',
     difficulty: 'Menengah',
@@ -52,9 +52,9 @@ export const modulesData = [
     title: 'Termokimia',
     fullTitle: 'Termokimia & Perubahan Entalpi Reaksi',
     tagline: 'Memahami aliran kalor, reaksi eksoterm, endoterm, dan Hukum Hess',
-    accentColor: '#f59e0b', // Amber
-    accentLight: 'rgba(245, 158, 11, 0.12)',
-    accentBorder: 'rgba(245, 158, 11, 0.3)',
+    accentColor: 'var(--um-gold-dark)', // UM Gold Dark
+    accentLight: 'rgba(234, 179, 8, 0.12)',
+    accentBorder: 'rgba(234, 179, 8, 0.3)',
     icon: 'flame',
     duration: '40 Menit',
     difficulty: 'Menengah',
@@ -89,9 +89,9 @@ export const modulesData = [
     title: 'Modul 1: Larutan Asam dan Basa',
     fullTitle: 'Modul 1: Larutan Asam dan Basa & Derajat Keasaman (pH)',
     tagline: 'Kupas tuntas teori ionik, skala logaritmik pH, indikator, dan titrasi',
-    accentColor: '#8b5cf6', // Violet
-    accentLight: 'rgba(139, 92, 246, 0.12)',
-    accentBorder: 'rgba(139, 92, 246, 0.3)',
+    accentColor: 'var(--um-blue-dark)', // UM Blue Dark
+    accentLight: 'rgba(0, 59, 115, 0.12)',
+    accentBorder: 'rgba(0, 59, 115, 0.3)',
     icon: 'beaker',
     duration: '50 Menit',
     difficulty: 'Menengah',

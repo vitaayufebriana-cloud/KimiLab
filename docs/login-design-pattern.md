@@ -1,12 +1,17 @@
-# KimiLab Login Design Pattern
+# KimiLab Login Design Pattern (UM) — Pola Desain Seluruh Website KimiLab
 
-Dokumen ini merangkum pola desain halaman masuk KimiLab: palet warna khas Universitas Negeri Malang (UM), tipografi, komponen, state interaksi, dan aturan aksesibilitas.
+Dokumen ini merangkum pola desain utama KimiLab: palet warna khas Universitas Negeri Malang (UM), tipografi, komponen, state interaksi, dan aturan aksesibilitas. Semula dokumen ini hanya berlaku untuk halaman masuk; sejak konversi menyeluruh, **seluruh halaman & komponen website** mengikuti pola yang sama.
 
 Berlaku untuk:
 
 - `src/index.css` sebagai sumber token warna global.
-- `src/components/auth/AuthPages.css` sebagai implementasi gaya halaman login.
-- `src/components/auth/AuthPages.jsx` sebagai struktur tampilan login, registrasi, dan lupa sandi.
+- `src/components/auth/AuthPages.css` & `AuthPages.jsx` — implementasi gaya halaman login, registrasi, dan lupa sandi.
+- `src/components/intro/IntroductionPage.css` & `IntroductionPage.jsx` — Beranda (hero, tentang, 5E ringkas) dan footer pengembang.
+- `src/components/dashboard/Dashboard.css` + `StudentDashboard.jsx` / `TeacherDashboard.jsx` — dashboard siswa & guru.
+- `src/App.css` — shell aplikasi: sidebar, topbar Panel Guru, modal generic, toast, bagian kuis & Learning Objectives.
+- `src/components/modules/LearningCycle5E.css` + `stages/*.jsx` — modul Learning Cycle 5E & tahapannya.
+- `src/components/quiz/QuizSection.jsx` — kuis interaktif.
+- Komponen pendukung lain (accordion, objectives, module reader, TopicCards/HeroSection bila dipakai kembali).
 
 ## 1. Prinsip visual
 
@@ -15,6 +20,15 @@ Berlaku untuk:
 - **Putih** menjadi kanvas utama supaya formulir terasa bersih dan fokus pada input.
 - Gunakan satu nada biru yang sama untuk aksi penting agar hierarki tetap jelas.
 - Jangan memakai kuning sebagai warna teks tubuh karena kontrasnya rendah di atas putih.
+- **Sukses/benar memakai `--um-info*`** (biru info), **error/salah memakai `--um-error*`** (merah). Palet UM tidak memiliki hijau, jadi hijau tidak dipakai untuk status.
+
+### Pengecualian (bukan warna UI)
+
+Warna-warna berikut **bukan** bagian dari chrome UI dan boleh dipertahankan apa adanya:
+
+- Ilustrasi SVG (lemon/sabun, atom, logo Google) — warna objek gambar.
+- Palet indikator pH & skala universal (data visual).
+- Warna konten penggambaran fenomena (mis. lemon = kuning, sabun = sian).
 
 ## 2. Palet warna dan token CSS
 
@@ -180,13 +194,19 @@ Tambahkan warna baru terlebih dahulu sebagai token di `src/index.css`, lalu doku
 **Jangan**
 
 - Jangan memakai kuning sebagai teks body atau label.
-- Jangan mencampur token tema gelap bawaan (`--bg-primary`, `--text-primary`) ke halaman login.
+- Jangan mencampur token tema gelap (mis. bekas `--bg-primary`/`--text-primary`) ke komponen mana pun.
 - Jangan mendefinisikan ulang `--um-*` di dalam komponen.
 - Jangan menambah warna biru/kuning baru tanpa memperbarui token dan dokumentasi ini.
+- Jangan memakai hijau untuk status sukses/benar — gunakan `--um-info*`.
 
 ## 9. Referensi
 
 - `src/index.css` — definisi token global.
 - `src/components/auth/AuthPages.css` — implementasi visual halaman login.
 - `src/components/auth/AuthPages.jsx` — struktur form login, registrasi, dan lupa sandi.
+- `src/components/intro/IntroductionPage.css` — beranda & footer pengembang.
+- `src/components/dashboard/Dashboard.css` + `StudentDashboard.jsx` / `TeacherDashboard.jsx` — dashboard siswa & guru.
+- `src/components/modules/LearningCycle5E.css` + `stages/` — modul Learning Cycle 5E.
+- `src/components/quiz/QuizSection.jsx` + bagian kuis di `src/App.css`.
+- `src/App.css` — shell aplikasi (sidebar, topbar Guru, modal, toast).
 - `AGENTS.md` — batasan arsitektur dan standar desain proyek.

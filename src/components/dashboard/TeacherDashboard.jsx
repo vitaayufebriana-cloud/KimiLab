@@ -166,7 +166,7 @@ export default function TeacherDashboard({
 
         <div className="funnel-bars-container">
           {totalStudents === 0 && (
-            <p style={{ fontSize: '13px', color: '#94a3b8', padding: '8px 2px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--um-muted)', padding: '8px 2px' }}>
               Belum ada siswa nyata yang terdaftar di browser ini — distribusi 5E akan terisi setelah siswa registrasi (akun demo dikecualikan).
             </p>
           )}
@@ -180,7 +180,7 @@ export default function TeacherDashboard({
                 className="funnel-fill"
                 style={{
                   width: `${(funnelCounts.engage / funnelTotal) * 100}%`,
-                  background: 'linear-gradient(90deg, #eab308, #facc15)',
+                  background: 'linear-gradient(90deg, var(--um-gold-dark), var(--um-gold))',
                 }}
               ></div>
             </div>
@@ -196,7 +196,7 @@ export default function TeacherDashboard({
                 className="funnel-fill"
                 style={{
                   width: `${(funnelCounts.explore / funnelTotal) * 100}%`,
-                  background: 'linear-gradient(90deg, #06b6d4, #38bdf8)',
+                  background: 'linear-gradient(90deg, var(--um-blue), var(--um-blue-dark))',
                 }}
               ></div>
             </div>
@@ -212,7 +212,7 @@ export default function TeacherDashboard({
                 className="funnel-fill"
                 style={{
                   width: `${(funnelCounts.explain / funnelTotal) * 100}%`,
-                  background: 'linear-gradient(90deg, #3b82f6, #6366f1)',
+                  background: 'linear-gradient(90deg, var(--um-blue-dark), var(--um-blue))',
                 }}
               ></div>
             </div>
@@ -228,7 +228,7 @@ export default function TeacherDashboard({
                 className="funnel-fill"
                 style={{
                   width: `${(funnelCounts.elaborate / funnelTotal) * 100}%`,
-                  background: 'linear-gradient(90deg, #10b981, #34d399)',
+                  background: 'linear-gradient(90deg, var(--um-info), var(--um-blue))',
                 }}
               ></div>
             </div>
@@ -244,7 +244,7 @@ export default function TeacherDashboard({
                 className="funnel-fill"
                 style={{
                   width: `${(funnelCounts.evaluate / funnelTotal) * 100}%`,
-                  background: 'linear-gradient(90deg, #a855f7, #c084fc)',
+                  background: 'linear-gradient(90deg, var(--um-blue-dark), var(--um-blue))',
                 }}
               ></div>
             </div>
@@ -319,7 +319,7 @@ export default function TeacherDashboard({
                         </div>
                       </td>
                       <td>
-                        <span style={{ fontWeight: '600', color: '#cbd5e1' }}>{std.kelas}</span>
+                        <span style={{ fontWeight: '600', color: 'var(--um-ink-soft)' }}>{std.kelas}</span>
                       </td>
                       <td>
                         <div className="stage-pills-row" title="Engage, Explore, Explain, Elaborate, Evaluate">
@@ -332,7 +332,7 @@ export default function TeacherDashboard({
                       </td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontWeight: '700', color: '#38bdf8' }}>
+                          <span style={{ fontWeight: '700', color: 'var(--um-blue)' }}>
                             {std.progressPercent !== null ? `${std.progressPercent}%` : '–'}
                           </span>
                         </div>
@@ -343,17 +343,17 @@ export default function TeacherDashboard({
                         </span>
                       </td>
                       <td>
-                        <span style={{ fontSize: '12.5px', color: '#94a3b8' }}>{std.status}</span>
+                        <span style={{ fontSize: '12.5px', color: 'var(--um-muted)' }}>{std.status}</span>
                       </td>
                       <td>
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>{std.lastActive}</span>
+                        <span style={{ fontSize: '12px', color: 'var(--um-placeholder)' }}>{std.lastActive}</span>
                       </td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '36px', color: '#94a3b8' }}>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '36px', color: 'var(--um-muted)' }}>
                     {students.length === 0
                       ? 'Belum ada siswa yang registrasi di browser ini (selain akun demo).'
                       : 'Tidak ada siswa yang cocok dengan filter pencarian.'}

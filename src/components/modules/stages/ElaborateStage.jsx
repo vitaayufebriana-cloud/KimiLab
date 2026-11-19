@@ -63,13 +63,13 @@ export default function ElaborateStage({
       {/* 2. Kartu Studi Kasus Lingkungan: Limbah Cair Pabrik Tahu */}
       <section className="case-study-hero" aria-label="Bahan Bacaan Kasus">
         <div className="section-title-wrap">
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--um-gold-dark)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
             📖 ARTIKEL STUDI KASUS KIMIA LINGKUNGAN
           </span>
           <h3 className="dash-main-title" style={{ fontSize: '24px', marginTop: '6px' }}>
             {caseStudy.title}
           </h3>
-          <p className="dash-subtitle" style={{ color: '#cbd5e1', marginTop: '8px' }}>
+          <p className="dash-subtitle" style={{ color: 'var(--um-text-muted-strong)', marginTop: '8px' }}>
             {caseStudy.overview}
           </p>
         </div>
@@ -84,24 +84,24 @@ export default function ElaborateStage({
           ))}
         </div>
 
-        <div style={{ background: 'rgba(15, 23, 42, 0.7)', borderLeft: '3px solid #ef4444', borderRadius: '0 10px 10px 0', padding: '14px 16px', marginTop: '16px' }}>
-          <strong style={{ color: '#f87171', fontSize: '13px', display: 'block', marginBottom: '4px' }}>
+        <div style={{ background: 'var(--um-error-bg)', borderLeft: '3px solid var(--um-error)', borderRadius: '0 10px 10px 0', padding: '14px 16px', marginTop: '16px' }}>
+          <strong style={{ color: 'var(--um-error)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>
             ⚠️ Dampak Ekologis Pembuangan Tanpa Pengolahan:
           </strong>
-          <p style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.55' }}>
+          <p style={{ fontSize: '13px', color: 'var(--um-text-muted-strong)', lineHeight: '1.55' }}>
             {caseStudy.ecologicalImpact}
           </p>
         </div>
 
         {/* Informasi Zat Penetral Reaktif */}
-        <div style={{ background: 'rgba(6, 182, 212, 0.12)', border: '1px solid rgba(6, 182, 212, 0.3)', borderRadius: '12px', padding: '16px', marginTop: '16px' }}>
-          <span style={{ fontSize: '12px', fontWeight: '800', color: '#38bdf8', textTransform: 'uppercase' }}>
+        <div style={{ background: 'var(--um-info-bg)', border: '1px solid var(--um-info-border)', borderRadius: '12px', padding: '16px', marginTop: '16px' }}>
+          <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--um-blue)', textTransform: 'uppercase' }}>
             Reagen Penetral Terpilih: {caseStudy.neutralizingReagent.name}
           </span>
-          <code style={{ display: 'block', color: '#f8fafc', fontSize: '14px', margin: '6px 0', fontWeight: '700' }}>
+          <code style={{ display: 'block', color: 'var(--um-ink)', fontSize: '14px', margin: '6px 0', fontWeight: '700' }}>
             {caseStudy.neutralizingReagent.reaction}
           </code>
-          <p style={{ fontSize: '12.5px', color: '#94a3b8' }}>
+          <p style={{ fontSize: '12.5px', color: 'var(--um-muted)' }}>
             Karakteristik: Valensi basa b = {caseStudy.neutralizingReagent.valence}, Mr = {caseStudy.neutralizingReagent.mr} g/mol. {caseStudy.neutralizingReagent.advantage}
           </p>
         </div>
@@ -119,20 +119,20 @@ export default function ElaborateStage({
         {analyticalQuestions.map((q) => (
           <div key={q.id} className="hots-card">
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-              <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+              <span style={{ background: 'rgba(234, 179, 8, 0.18)', color: 'var(--um-gold-dark)', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
                 HOTS LEVEL {q.number}
               </span>
-              <h4 style={{ fontSize: '15px', color: '#f8fafc', fontWeight: '700' }}>
+              <h4 style={{ fontSize: '15px', color: 'var(--um-ink)', fontWeight: '700' }}>
                 {q.title}
               </h4>
             </div>
 
-            <p style={{ fontSize: '13.5px', color: '#cbd5e1', lineHeight: '1.55', marginBottom: '8px' }}>
+            <p style={{ fontSize: '13.5px', color: 'var(--um-text-muted-strong)', lineHeight: '1.55', marginBottom: '8px' }}>
               {q.prompt}
             </p>
 
             {q.stepGuide && (
-              <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', color: '#94a3b8', whiteSpace: 'pre-line', marginBottom: '8px' }}>
+              <div style={{ background: 'var(--um-bg-tint)', padding: '10px 14px', borderRadius: '8px', fontSize: '12px', color: 'var(--um-muted)', whiteSpace: 'pre-line', marginBottom: '8px' }}>
                 {q.stepGuide}
               </div>
             )}
@@ -155,10 +155,10 @@ export default function ElaborateStage({
 
         {/* Refleksi Desain IPAL Sederhana */}
         <div className="hots-card">
-          <h4 style={{ fontSize: '15px', color: '#38bdf8', fontWeight: '700', marginBottom: '8px' }}>
+          <h4 style={{ fontSize: '15px', color: 'var(--um-blue)', fontWeight: '700', marginBottom: '8px' }}>
             💡 Rangkuman Rekomendasi Solusi untuk Pengrajin Tahu
           </h4>
-          <p style={{ fontSize: '13px', color: '#94a3b8', marginBottom: '10px' }}>
+          <p style={{ fontSize: '13px', color: 'var(--um-muted)', marginBottom: '10px' }}>
             Tuliskan pesan atau saran teknis sederhana yang dapat dipahami masyarakat pengrajin tahu agar sungai tetap lestari:
           </p>
           <textarea

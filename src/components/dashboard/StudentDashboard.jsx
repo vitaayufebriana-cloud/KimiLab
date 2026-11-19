@@ -254,7 +254,7 @@ export default function StudentDashboard({
 
         <div className="module-intro-grid">
           <div>
-            <h3 style={{ fontSize: '15px', color: '#f8fafc', fontWeight: '700', marginBottom: '8px' }}>
+            <h3 style={{ fontSize: '15px', color: 'var(--um-ink)', fontWeight: '700', marginBottom: '8px' }}>
               🎯 Capaian & Tujuan Pembelajaran:
             </h3>
             <div className="objectives-list">

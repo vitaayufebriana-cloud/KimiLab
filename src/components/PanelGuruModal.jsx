@@ -62,7 +62,7 @@ export default function PanelGuruModal({ isOpen, onClose, onSuccess }) {
       <div className="modal-content-box panel-guru-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div>
-            <span className="modal-subtitle" style={{ color: '#38bdf8' }}>Akses Terbatas</span>
+            <span className="modal-subtitle" style={{ color: 'var(--um-blue)' }}>Akses Terbatas</span>
             <h3 id="panel-guru-modal-title" className="modal-title" style={{ fontSize: '1.25rem' }}>
               Panel Guru KimiLab
             </h3>
