@@ -73,7 +73,7 @@ export default function ExplainStage({
       <div className="explain-layout-grid">
         {/* Sidebar Navigasi 12 Topik */}
         <aside className="topics-sidebar-nav" aria-label="Daftar 12 Topik Asam Basa">
-          <span style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px', paddingLeft: '8px' }}>
+          <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--um-muted)', textTransform: 'uppercase', marginBottom: '6px', paddingLeft: '8px' }}>
             Daftar 12 Submateri Pokok:
           </span>
 
@@ -89,7 +89,7 @@ export default function ExplainStage({
                 onClick={() => handleSelectTopic(top.id)}
               >
                 <span>{top.title}</span>
-                {isRead && <span style={{ color: '#34d399', fontSize: '12px' }}>✓</span>}
+                {isRead && <span style={{ color: 'var(--um-info)', fontSize: '12px' }}>✓</span>}
               </button>
             );
           })}
@@ -99,7 +99,7 @@ export default function ExplainStage({
         <article className="explain-content-card" aria-labelledby="topic-main-heading">
           {/* Header Topik Aktif */}
           <div className="section-title-wrap" style={{ marginBottom: '16px' }}>
-            <span style={{ fontSize: '12px', fontWeight: '700', color: '#38bdf8', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--um-blue)', textTransform: 'uppercase' }}>
               Submateri {currentTopic.order} dari 12
             </span>
             <h3 id="topic-main-heading" className="dash-section-title" style={{ fontSize: '24px', marginTop: '4px' }}>
@@ -109,7 +109,7 @@ export default function ExplainStage({
           </div>
 
           {/* Penjelasan Konsep Inti */}
-          <div style={{ fontSize: '14.5px', lineHeight: '1.7', color: '#cbd5e1', marginBottom: '20px' }}>
+          <div style={{ fontSize: '14.5px', lineHeight: '1.7', color: 'var(--um-text-muted-strong)', marginBottom: '20px' }}>
             <p>{currentTopic.explanation}</p>
           </div>
 
@@ -134,7 +134,7 @@ export default function ExplainStage({
           {/* Persamaan Reaksi Kimia IUPAC */}
           {currentTopic.equations && currentTopic.equations.length > 0 && (
             <div className="equations-strip">
-              <span style={{ fontSize: '11px', fontWeight: '800', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--um-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
                 Persamaan Reaksi Kimia Terkait:
               </span>
               {currentTopic.equations.map((eq, i) => (
@@ -149,11 +149,11 @@ export default function ExplainStage({
           {currentTopic.formulas && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', margin: '18px 0' }}>
               {currentTopic.formulas.map((f, i) => (
-                <div key={i} style={{ background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '12px' }}>
-                  <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: '700', textTransform: 'uppercase' }}>
+                <div key={i} style={{ background: 'var(--um-bg-tint)', border: '1px solid var(--um-border-soft)', borderRadius: '10px', padding: '12px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--um-blue)', fontWeight: '700', textTransform: 'uppercase' }}>
                     {f.label}
                   </span>
-                  <code style={{ display: 'block', color: '#f8fafc', fontSize: '13px', marginTop: '4px', fontWeight: '600' }}>
+                  <code style={{ display: 'block', color: 'var(--um-ink)', fontSize: '13px', marginTop: '4px', fontWeight: '600' }}>
                     {f.text}
                   </code>
                 </div>
@@ -174,10 +174,10 @@ export default function ExplainStage({
           {currentTopic.checkpoint && (
             <div className="prediction-card" style={{ marginTop: '24px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-                <span style={{ background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
+                <span style={{ background: 'var(--um-bg-tint)', color: 'var(--um-blue)', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700' }}>
                   CHECKPOINT KOGNITIF
                 </span>
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>Uji Pemahaman Cepat</span>
+                <span style={{ fontSize: '13px', color: 'var(--um-muted)' }}>Uji Pemahaman Cepat</span>
               </div>
 
               <p className="pred-q-text">{currentTopic.checkpoint.question}</p>
@@ -216,7 +216,7 @@ export default function ExplainStage({
           )}
 
           {/* Navigasi Antar Topik (Sebelumnya / Selanjutnya) */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '28px', paddingTop: '18px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '28px', paddingTop: '18px', borderTop: '1px solid var(--um-border-soft)' }}>
             <button
               type="button"
               className="btn-dash-secondary"

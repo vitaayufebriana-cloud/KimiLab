@@ -1,6 +1,6 @@
 /* ==========================================================================
    INTRODUCTION PAGE (Beranda) — Hero & Tentang KimiLab
-   + DEVELOPER FOOTER
+   + DEVELOPER FOOTER — Tema Terang UM (lihat docs/login-design-pattern.md)
    ========================================================================== */
 
 /* ============ HERO ============ */
@@ -8,21 +8,21 @@
   position: relative;
   overflow: hidden;
   padding: 4.5rem 1.5rem 4rem;
-  background: var(--bg-primary);
+  background: linear-gradient(180deg, var(--um-white) 0%, var(--um-bg) 46%, var(--um-bg-tint) 100%);
 }
 
 .intro-hero-glow {
   position: absolute;
   border-radius: 50%;
   filter: blur(90px);
-  opacity: 0.35;
+  opacity: 0.5;
   pointer-events: none;
 }
 
 .intro-hero-glow-indigo {
   width: 320px;
   height: 320px;
-  background: rgba(99, 102, 241, 0.55);
+  background: rgba(0, 82, 156, 0.14);
   top: -90px;
   right: -90px;
 }
@@ -30,7 +30,7 @@
 .intro-hero-glow-cyan {
   width: 280px;
   height: 280px;
-  background: rgba(56, 189, 248, 0.45);
+  background: rgba(250, 204, 21, 0.3);
   bottom: -100px;
   left: -90px;
 }
@@ -51,9 +51,9 @@
   gap: 0.5rem;
   padding: 0.45rem 1rem;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  background: rgba(56, 189, 248, 0.08);
-  color: var(--accent-cyan);
+  border: 1px solid var(--um-info-border);
+  background: var(--um-info-bg);
+  color: var(--um-blue);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -62,7 +62,7 @@
 .intro-hero-eyebrow {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--um-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   margin: 0;
@@ -73,17 +73,21 @@
   font-weight: 800;
   line-height: 1.12;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
+  color: var(--um-ink);
   margin: 0;
   max-width: 900px;
 }
 
 .intro-hero-accent {
-  color: var(--accent-cyan);
+  color: var(--um-blue);
+}
+
+.intro-hero-kimi {
+  color: var(--um-gold-dark);
 }
 
 .intro-hero-gradient {
-  background: var(--grad-primary);
+  background: linear-gradient(90deg, var(--um-blue) 0%, var(--um-gold-dark) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -92,12 +96,12 @@
 .intro-hero-desc {
   font-size: 1.08rem;
   line-height: 1.7;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
   max-width: 640px;
 }
 
 .intro-hero-desc strong {
-  color: var(--text-primary);
+  color: var(--um-ink);
 }
 
 .intro-cta-row {
@@ -112,39 +116,39 @@
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: #ffffff;
+  background: var(--um-blue);
+  color: var(--um-white);
   font-size: 1rem;
   font-weight: 700;
   padding: 0.9rem 1.7rem;
   border-radius: var(--radius-md);
-  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 4px 18px var(--um-shadow-strong);
   transition: all var(--transition-fast);
 }
 
 .btn-intro-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5);
-  background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+  background: var(--um-blue-dark);
+  box-shadow: 0 6px 24px var(--um-shadow-strong);
 }
 
 .btn-intro-secondary {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--accent-cyan);
+  color: var(--um-blue);
   font-size: 0.95rem;
   font-weight: 600;
   padding: 0.85rem 1.4rem;
   border-radius: var(--radius-md);
-  border: 1px solid rgba(56, 189, 248, 0.35);
-  background: rgba(56, 189, 248, 0.06);
+  border: 1px solid var(--um-border);
+  background: var(--um-white);
   transition: all var(--transition-fast);
 }
 
 .btn-intro-secondary:hover {
-  background: rgba(56, 189, 248, 0.14);
-  border-color: rgba(56, 189, 248, 0.6);
+  background: var(--um-bg-tint);
+  border-color: var(--um-blue);
   transform: translateY(-2px);
 }
 
@@ -163,14 +167,14 @@
   gap: 0.45rem;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
 }
 
 /* ============ TENTANG KIMILAB ============ */
 .intro-about {
   padding: 4rem 1.5rem 4.5rem;
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-subtle);
+  background: var(--um-white);
+  border-top: 1px solid var(--um-border-soft);
 }
 
 .intro-about-container {
@@ -187,9 +191,9 @@
   align-self: flex-start;
   padding: 0.4rem 0.9rem;
   border-radius: var(--radius-full);
-  border: 1px solid rgba(168, 85, 247, 0.4);
-  background: rgba(168, 85, 247, 0.1);
-  color: #c084fc;
+  border: 1px solid var(--um-info-border);
+  background: var(--um-info-bg);
+  color: var(--um-blue);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -199,19 +203,19 @@
   font-size: clamp(1.7rem, 3.5vw, 2.4rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
+  color: var(--um-ink);
   margin: 0;
 }
 
 .intro-about-subtitle {
   font-size: 1.02rem;
   line-height: 1.7;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
   max-width: 720px;
 }
 
 .intro-about-subtitle strong {
-  color: var(--text-primary);
+  color: var(--um-ink);
 }
 
 .intro-about-grid {
@@ -222,21 +226,21 @@
 }
 
 .intro-about-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
+  background: var(--um-white);
+  border: 1px solid var(--um-card-border);
+  border-radius: 16px;
   padding: 1.4rem 1.3rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   transition: all var(--transition-normal);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px -6px var(--um-shadow-soft);
 }
 
 .intro-about-card:hover {
-  background: var(--bg-card-hover);
   transform: translateY(-3px);
-  border-color: rgba(99, 102, 241, 0.35);
+  border-color: var(--um-blue);
+  box-shadow: 0 14px 30px -12px var(--um-shadow);
 }
 
 .intro-about-icon {
@@ -247,33 +251,33 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--um-bg-tint);
 }
 
-.icon-cyan    { box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.35); }
-.icon-indigo  { box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.4); }
-.icon-emerald { box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.4); }
-.icon-amber   { box-shadow: inset 0 0 0 1px rgba(245, 158, 11, 0.4); }
+.icon-cyan    { box-shadow: inset 0 0 0 1px var(--um-info-border); }
+.icon-indigo  { box-shadow: inset 0 0 0 1px var(--um-info-border); }
+.icon-emerald { box-shadow: inset 0 0 0 1px var(--um-info-border); }
+.icon-amber   { box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.6); }
 
 .intro-about-card h3 {
   font-size: 1.02rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--um-ink);
   margin: 0;
 }
 
 .intro-about-card p {
   font-size: 0.86rem;
   line-height: 1.65;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
   margin: 0;
 }
 
 /* ============ LEARNING CYCLE 5E — RINGKASAN ============ */
 .intro-5e-block {
   margin-top: 0.75rem;
-  background: var(--grad-subtle);
-  border: 1px solid var(--border-subtle);
+  background: var(--um-bg-tint);
+  border: 1px solid var(--um-info-border);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.5rem 1.75rem;
 }
@@ -281,7 +285,7 @@
 .intro-5e-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--um-ink);
   margin: 0 0 1rem;
 }
 
@@ -296,8 +300,8 @@
 }
 
 .intro-5e-step {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+  background: var(--um-white);
+  border: 1px solid var(--um-border-soft);
   border-radius: var(--radius-md);
   padding: 0.85rem 0.8rem;
   display: flex;
@@ -309,26 +313,26 @@
   font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--accent-cyan);
+  color: var(--um-blue);
   letter-spacing: 0.1em;
 }
 
 .intro-5e-name {
   font-size: 0.9rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--um-ink);
 }
 
 .intro-5e-desc {
   font-size: 0.72rem;
   line-height: 1.5;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
 }
 
 /* ============ DEVELOPER FOOTER ============ */
 .dev-footer {
-  background: #060911;
-  border-top: 1px solid var(--border-subtle);
+  background: var(--um-bg);
+  border-top: 1px solid var(--um-border-soft);
   padding: 3.5rem 1.5rem 1.5rem;
 }
 
@@ -339,7 +343,7 @@
   grid-template-columns: 2fr 1fr 1fr 1.3fr;
   gap: 2.5rem;
   padding-bottom: 2rem;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--um-border-soft);
 }
 
 .dev-footer-brand {
@@ -356,25 +360,29 @@
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
-  background: rgba(56, 189, 248, 0.1);
-  color: var(--accent-cyan);
-  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.35);
+  background: var(--um-info-bg);
+  color: var(--um-blue);
+  box-shadow: inset 0 0 0 1px var(--um-info-border);
 }
 
 .dev-footer-brand-name {
   font-size: 1.2rem;
   font-weight: 800;
-  color: var(--text-primary);
+  color: var(--um-ink);
 }
 
 .dev-footer-accent {
-  color: var(--accent-cyan);
+  color: var(--um-blue);
+}
+
+.dev-footer-kimi {
+  color: var(--um-gold-dark);
 }
 
 .dev-footer-tagline {
   font-size: 0.85rem;
   line-height: 1.65;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
   max-width: 420px;
   margin-bottom: 0.75rem;
 }
@@ -382,7 +390,7 @@
 .dev-footer-legal {
   font-size: 0.73rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--um-muted);
 }
 
 .dev-footer-col h4 {
@@ -390,7 +398,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--text-primary);
+  color: var(--um-ink);
   margin: 0 0 0.75rem;
 }
 
@@ -406,7 +414,7 @@
 .dev-footer-col li {
   font-size: 0.84rem;
   line-height: 1.55;
-  color: var(--text-secondary);
+  color: var(--um-text-muted-strong);
 }
 
 .dev-footer-bottom {
@@ -418,7 +426,7 @@
 
 .dev-footer-bottom p {
   font-size: 0.78rem;
-  color: var(--text-muted);
+  color: var(--um-muted);
 }
 
 /* ============ RESPONSIVE ============ */

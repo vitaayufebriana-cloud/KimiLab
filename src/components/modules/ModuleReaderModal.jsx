@@ -31,7 +31,7 @@ export default function ModuleReaderModal({
     equation: 'HCl(aq) + NaOH(aq) → NaCl(aq) + H₂O(l)',
     note: 'Reaksi netralisasi antara asam kuat dan basa kuat menghasilkan garam netral dan molekul air.',
   },
-  accentColor = '#8b5cf6',
+  accentColor = 'var(--um-blue)',
 }) {
   const [internalTab, setInternalTab] = useState(initialTab);
   const activeTab = controlledTab !== undefined ? controlledTab : internalTab;

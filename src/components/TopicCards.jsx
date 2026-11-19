@@ -232,7 +232,7 @@ export default function TopicCards({ progress = {}, onUpdateProgress, onOpen5ESt
                   id="btn-open-5e-from-card"
                   className="btn-card-primary"
                   onClick={() => onOpen5EStage('engage')}
-                  style={{ background: 'linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)', boxShadow: '0 4px 18px rgba(6, 182, 212, 0.4)' }}
+                  style={{ background: 'linear-gradient(135deg, var(--um-blue) 0%, var(--um-blue-dark) 100%)', boxShadow: '0 4px 18px var(--um-shadow-strong)', borderColor: 'var(--um-blue-dark)', color: 'var(--um-white)' }}
                 >
                   <span>🚀 Mulai Belajar Sintaks 5E</span>
                   <span aria-hidden="true">&rarr;</span>

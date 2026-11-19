@@ -155,7 +155,7 @@ export default function ExploreStage({
               <label htmlFor="conc-slider" className="auth-input-label">
                 Konsentrasi Molaritas (M):
               </label>
-              <strong style={{ color: '#38bdf8', fontFamily: 'var(--font-mono, monospace)' }}>
+              <strong style={{ color: 'var(--um-blue)', fontFamily: 'var(--font-mono, monospace)' }}>
                 {concentration} M
               </strong>
             </div>
@@ -167,9 +167,9 @@ export default function ExploreStage({
               step="0.005"
               value={concentration}
               onChange={(e) => setConcentration(parseFloat(e.target.value))}
-              style={{ width: '100%', accentColor: '#0284c7', cursor: 'pointer' }}
+              style={{ width: '100%', accentColor: 'var(--um-blue)', cursor: 'pointer' }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--um-muted)', marginTop: '4px' }}>
               <span>0,001 M (Sangat Encer)</span>
               <span>0,1 M (Standar)</span>
               <span>1,0 M (Pekat)</span>
@@ -177,14 +177,14 @@ export default function ExploreStage({
           </div>
 
           {/* Persamaan Reaksi Disosiasi */}
-          <div style={{ background: 'rgba(15, 23, 42, 0.6)', padding: '12px 14px', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-            <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>
+          <div style={{ background: 'var(--um-bg-tint)', padding: '12px 14px', borderRadius: '10px', border: '1px solid var(--um-border-soft)' }}>
+            <span style={{ fontSize: '11px', color: 'var(--um-muted)', textTransform: 'uppercase', fontWeight: '700' }}>
               Persamaan Ionisasi:
             </span>
-            <code style={{ display: 'block', color: '#38bdf8', marginTop: '4px', fontSize: '13px' }}>
+            <code style={{ display: 'block', color: 'var(--um-blue)', marginTop: '4px', fontSize: '13px' }}>
               {currentSolution.reaction}
             </code>
-            <p style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '6px' }}>
+            <p style={{ fontSize: '12px', color: 'var(--um-text-muted-strong)', marginTop: '6px' }}>
               {currentSolution.description}
             </p>
           </div>
@@ -247,14 +247,14 @@ export default function ExploreStage({
           <div className="indicators-strip-box">
             <div className="indicator-mini-card">
               <span className="ind-name">Lakmus Merah:</span>
-              <span className="ind-val" style={{ color: props.indicators.lakmusMerah === 'Biru' ? '#38bdf8' : '#f87171' }}>
+              <span className="ind-val" style={{ color: props.indicators.lakmusMerah === 'Biru' ? 'var(--um-blue)' : 'var(--um-error)' }}>
                 {props.indicators.lakmusMerah}
               </span>
             </div>
 
             <div className="indicator-mini-card">
               <span className="ind-name">Lakmus Biru:</span>
-              <span className="ind-val" style={{ color: props.indicators.lakmusBiru === 'Merah' ? '#f87171' : '#38bdf8' }}>
+              <span className="ind-val" style={{ color: props.indicators.lakmusBiru === 'Merah' ? 'var(--um-error)' : 'var(--um-blue)' }}>
                 {props.indicators.lakmusBiru}
               </span>
             </div>
@@ -330,13 +330,13 @@ export default function ExploreStage({
                 observations.map((row, idx) => (
                   <tr key={row.id}>
                     <td>{idx + 1}</td>
-                    <td><span style={{ fontSize: '11.5px', color: '#64748b' }}>{row.savedAt}</span></td>
+                    <td><span style={{ fontSize: '11.5px', color: 'var(--um-muted)' }}>{row.savedAt}</span></td>
                     <td>
                       <strong>{row.solutionName}</strong>
-                      <span style={{ display: 'block', fontSize: '11px', color: '#94a3b8' }}>{row.type}</span>
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--um-muted)' }}>{row.type}</span>
                     </td>
                     <td><code>{row.concentration}</code></td>
-                    <td><strong style={{ color: '#38bdf8' }}>{row.ph}</strong></td>
+                    <td><strong style={{ color: 'var(--um-blue)' }}>{row.ph}</strong></td>
                     <td>{row.lakmus}</td>
                     <td>{row.pp}</td>
                     <td>{row.conductivity}</td>
@@ -345,7 +345,7 @@ export default function ExploreStage({
                         type="button"
                         onClick={() => deleteExploreObservation(row.id)}
                         title="Hapus baris ini"
-                        style={{ color: '#f87171', fontSize: '14px', cursor: 'pointer' }}
+                        style={{ color: 'var(--um-error)', fontSize: '14px', cursor: 'pointer' }}
                       >
                         ✕
                       </button>
@@ -354,7 +354,7 @@ export default function ExploreStage({
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" style={{ textAlign: 'center', padding: '28px', color: '#94a3b8' }}>
+                  <td colSpan="9" style={{ textAlign: 'center', padding: '28px', color: 'var(--um-muted)' }}>
                     Belum ada data pengamatan. Klik tombol <strong>&ldquo;Catat Hasil ke Tabel Pengamatan&rdquo;</strong> di atas untuk menyimpan eksperimen.
                   </td>
                 </tr>

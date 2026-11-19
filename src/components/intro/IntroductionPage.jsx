@@ -42,7 +42,7 @@ export default function IntroductionPage({ authUser = null, onStartLearning, onO
           </p>
 
           <h1 id="intro-hero-title" className="intro-hero-title">
-            Kimi<span className="intro-hero-accent">Lab</span> — Belajar Kimia Jadi{' '}
+            <span className="intro-hero-kimi">Kimi</span><span className="intro-hero-accent">Lab</span> — Belajar Kimia Jadi{' '}
             <span className="intro-hero-gradient">Lebih Hidup</span>
           </h1>
 

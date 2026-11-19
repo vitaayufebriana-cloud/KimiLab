@@ -2,29 +2,7 @@
   --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Color Palette - Premium Modern Dark Mode */
-  --bg-primary: #090d16;
-  --bg-secondary: #0f172a;
-  --bg-card: rgba(23, 31, 51, 0.7);
-  --bg-card-hover: rgba(30, 41, 69, 0.85);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(99, 102, 241, 0.5);
-
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-
-  --accent-cyan: #38bdf8;
-  --accent-indigo: #6366f1;
-  --accent-purple: #a855f7;
-  --accent-emerald: #10b981;
-  --accent-amber: #f59e0b;
-
-  --grad-primary: linear-gradient(135deg, #6366f1 0%, #38bdf8 50%, #a855f7 100%);
-  --grad-subtle: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, rgba(56, 189, 248, 0.03) 100%);
-  --glow-indigo: 0 0 40px -10px rgba(99, 102, 241, 0.4);
-  --glow-cyan: 0 0 35px -8px rgba(56, 189, 248, 0.4);
-
+  /* Radius & transisi bersama (dipakai seluruh halaman) */
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
@@ -34,6 +12,9 @@
   --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
 
+  /* ============================================================
+     Token Identitas UM (disinkronkan dengan docs/login-design-pattern.md)
+     ============================================================ */
   --um-blue: #00529c;
   --um-blue-dark: #003b73;
   --um-gold: #facc15;
@@ -78,8 +59,8 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  background-color: var(--um-bg);
+  color: var(--um-ink);
   min-height: 100vh;
   overflow-x: hidden;
   line-height: 1.6;
@@ -87,7 +68,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Background atmospheric gradient blur */
+/* Atmosfir latar: cahaya biru UM & emas yang sangat halus */
 body::before {
   content: '';
   position: fixed;
@@ -96,7 +77,7 @@ body::before {
   transform: translateX(-50%);
   width: 800px;
   height: 500px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.18) 0%, rgba(56, 189, 248, 0.08) 45%, transparent 70%);
+  background: radial-gradient(circle, rgba(0, 82, 156, 0.08) 0%, rgba(250, 204, 21, 0.06) 45%, transparent 70%);
   filter: blur(80px);
   pointer-events: none;
   z-index: 0;

@@ -308,8 +308,8 @@ export default function QuizSection({ onUpdateProgress }) {
               style={{
                 width: `${progressPercent}%`,
                 background: isSubmitted
-                  ? 'linear-gradient(90deg, #10b981, #34d399)'
-                  : 'linear-gradient(90deg, #8b5cf6, #38bdf8)',
+                  ? 'linear-gradient(90deg, var(--um-info), var(--um-blue))'
+                  : 'linear-gradient(90deg, var(--um-blue), var(--um-blue-dark))',
               }}
             ></div>
           </div>

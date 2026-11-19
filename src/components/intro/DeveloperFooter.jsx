@@ -18,7 +18,7 @@ export default function DeveloperFooter() {
               </svg>
             </div>
             <span className="dev-footer-brand-name">
-              Kimi<span className="dev-footer-accent">Lab</span>
+              <span className="dev-footer-kimi">Kimi</span><span className="dev-footer-accent">Lab</span>
             </span>
           </div>
           <p className="dev-footer-tagline">
